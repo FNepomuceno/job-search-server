@@ -217,46 +217,24 @@ db_row * new_row(db_stmt * stmt)
 	return result;
 }
 
-char DB_NAME[] = "test.db";
-char QUERY[] = "SELECT * FROM number;";
-
-int HTTP_PORT = 8080;
-
-int main()
+typedef struct web_server
 {
-	// Create socket file descriptor
-	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd == 0)
-	{
-		perror("In socket");
-		exit(EXIT_FAILURE);
-	}
-
-	// Make internet-style socket address structure
+	int server_fd;
 	struct sockaddr_in address;
-	int addrlen = sizeof(address);
+	int addrlen;
+	bool is_successful;
+	void (*handle_client)(int);
+} web_server;
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(HTTP_PORT);
+void clear_server(web_server * server)
+{
+	// Close the socket
+	close(server->server_fd);
+	server->server_fd = 0;
+}
 
-	memset(address.sin_zero, '\0', sizeof(address.sin_zero));
-
-	// Bind address to socket
-	if (bind(server_fd, (struct sockaddr *)&address,
-		sizeof(address)) < 0)
-	{
-		perror("In bind");
-		exit(EXIT_FAILURE);
-	}
-
-	// Open socket for requests
-	if (listen(server_fd, 1024) < 0)
-	{
-		perror("In listen");
-		exit(EXIT_FAILURE);
-	}
-
+void web_send_hello(int clientfd)
+{
 	// HTTP Response Message has a header and a body
 	// separated by an empty line
 	char * response = "HTTP/1.1 200 OK\n"
@@ -265,39 +243,100 @@ int main()
 		"\n"
 		"Hello world!";
 
-	// Loop
-	while(1)
+	char buffer[30000] = {0};
+	long req_length = read(clientfd, buffer, 30000);
+	if (req_length < 0)
 	{
-		printf("\n+++ Waiting for connections +++\n\n");
-		int new_socket = accept(
-			server_fd,
-			(struct sockaddr *)&address,
-			(socklen_t *)&addrlen
-		);
-		if (new_socket < 0)
-		{
-			perror("In socket");
-			exit(EXIT_FAILURE);
-		}
-
-		// Read HTTP Request
-		char buffer[30000] = {0};
-		long req_length = read(new_socket, buffer, 30000);
-		if (req_length < 0)
-		{
-			perror("In read");
-			close(new_socket);
-			continue;
-		}
-
-		// HTTP Response goes here
-		printf("%s\n", buffer);
-		write(new_socket, response, strlen(response));
-		printf("--- Message sent ---\n");
-
-		// Done with connection
-		close(new_socket);
+		perror("In read");
+		return;
 	}
 
-	return 0;
+	// HTTP Response goes here
+	printf("%s\n", buffer);
+	write(clientfd, response, strlen(response));
+}
+
+web_server new_server(int port, void (*handle_client)(int))
+{
+	web_server result;
+	result.is_successful = true;
+	result.handle_client = handle_client;
+
+	// Create socket file descriptor
+	result.server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (result.server_fd == 0)
+	{
+		perror("Could not open socket");
+		result.is_successful = false;
+		return result;
+	}
+
+	// Make internet-style socket address structure
+	result.addrlen = sizeof(result.address);
+
+	result.address.sin_family = AF_INET;
+	result.address.sin_addr.s_addr = INADDR_ANY;
+	result.address.sin_port = htons(port);
+
+	memset(result.address.sin_zero, '\0',
+		sizeof(result.address.sin_zero));
+
+	// Bind address to socket
+	if (bind(result.server_fd,
+		(struct sockaddr *)&result.address,
+		sizeof(result.address)) < 0)
+	{
+		perror("Could not bind address");
+		result.is_successful = false;
+		return result;
+	}
+
+	// Open socket for requests
+	if (listen(result.server_fd, 1024) < 0)
+	{
+		perror("Problem with listen");
+		result.is_successful = false;
+		return result;
+	}
+
+	// Resulting socket ready for response loop
+	return result;
+}
+
+void run_server(web_server * server)
+{
+	if (!(server->is_successful)) return;
+
+	while(true)
+	{
+		int clientfd = accept(
+			server->server_fd,
+			(struct sockaddr *)&(server->address),
+			(socklen_t *)&(server->addrlen)
+		);
+		if (clientfd < 0)
+		{
+			perror("Could not accept connection");
+			server->is_successful = false;
+			return;
+		}
+
+		(server->handle_client)(clientfd);
+		close(clientfd);
+	}
+}
+
+char DB_NAME[] = "test.db";
+char QUERY[] = "SELECT * FROM number;";
+
+int HTTP_PORT = 8080;
+
+int main()
+{
+	web_server server = new_server(HTTP_PORT, web_send_hello);
+	run_server(&server);
+
+	// Should not reach here except on error
+	clear_server(&server);
+	return 1;
 }

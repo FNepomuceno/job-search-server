@@ -1,8 +1,11 @@
+#include <netinet/in.h>
 #include <sqlite3.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 typedef struct db_conn
 {
@@ -217,37 +220,84 @@ db_row * new_row(db_stmt * stmt)
 char DB_NAME[] = "test.db";
 char QUERY[] = "SELECT * FROM number;";
 
+int HTTP_PORT = 8080;
+
 int main()
 {
-	// -- Connect to database --
-	db_conn * conn = new_conn(DB_NAME);
-
-	// -- Compile statement --
-	int length = sizeof(QUERY); // only works with const char[]
-	db_stmt * stmt = new_stmt(conn, QUERY, length);
-
-	// -- Execute statement --
-	db_row * row = new_row(stmt);
-	printf("Data:\n\n");
-	while (row->has_value)
+	// Create socket file descriptor
+	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_fd == 0)
 	{
-		printf("Row:\n");
-		for (int i = 0; i < row->num_cols; i++)
-		{
-			printf("%s\n", (char *)row->values[i]);
-		}
-		printf("\n");
-
-		step_row(row);
+		perror("In socket");
+		exit(EXIT_FAILURE);
 	}
-	printf("End\n");
 
-	// -- Cleanup --
-	int return_val = !(row->is_successful);
+	// Make internet-style socket address structure
+	struct sockaddr_in address;
+	int addrlen = sizeof(address);
 
-	clean_row(&row);
-	clean_stmt(&stmt);
-	clean_conn(&conn);
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(HTTP_PORT);
 
-	return return_val;
+	memset(address.sin_zero, '\0', sizeof(address.sin_zero));
+
+	// Bind address to socket
+	if (bind(server_fd, (struct sockaddr *)&address,
+		sizeof(address)) < 0)
+	{
+		perror("In bind");
+		exit(EXIT_FAILURE);
+	}
+
+	// Open socket for requests
+	if (listen(server_fd, 1024) < 0)
+	{
+		perror("In listen");
+		exit(EXIT_FAILURE);
+	}
+
+	// HTTP Response Message has a header and a body
+	// separated by an empty line
+	char * response = "HTTP/1.1 200 OK\n"
+		"Content-Type: text/plain\n"
+		"Content-Length: 12\n"
+		"\n"
+		"Hello world!";
+
+	// Loop
+	while(1)
+	{
+		printf("\n+++ Waiting for connections +++\n\n");
+		int new_socket = accept(
+			server_fd,
+			(struct sockaddr *)&address,
+			(socklen_t *)&addrlen
+		);
+		if (new_socket < 0)
+		{
+			perror("In socket");
+			exit(EXIT_FAILURE);
+		}
+
+		// Read HTTP Request
+		char buffer[30000] = {0};
+		long req_length = read(new_socket, buffer, 30000);
+		if (req_length < 0)
+		{
+			perror("In read");
+			close(new_socket);
+			continue;
+		}
+
+		// HTTP Response goes here
+		printf("%s\n", buffer);
+		write(new_socket, response, strlen(response));
+		printf("--- Message sent ---\n");
+
+		// Done with connection
+		close(new_socket);
+	}
+
+	return 0;
 }

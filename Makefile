@@ -4,11 +4,12 @@ CC = gcc
 DFLAGS = -g -Werror
 CFLAGS = -Wall -ansi -pedantic -std=c11
 LDFLAGS = -lsqlite3
-SRC_DIR = src
+SRC_DIR = src/
 BUILD_DIR = build
 TARGET = $(BUILD_DIR)/jobhuntserver
 DTARGET = $(BUILD_DIR)/test
-FILES = $(SRC_DIR)/main.c
+RAW_FILES = main.c database.c
+FILES = $(addprefix $(SRC_DIR), $(RAW_FILES))
 RM = rm -rf
 
 all:

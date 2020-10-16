@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -17,11 +18,10 @@ void sigintHandler(int signum)
 
 void web_send_hello(int clientfd, void * extra_data)
 {
-	// Obtain DB connection from extra_data
+	// STEP 0: Get database connection from `extra_data`
 	db_conn * conn = (db_conn *) extra_data;
 
-
-	// Read request from client
+	// STEP 1: Read and parse client request
 	char buffer[30000] = {0};
 	long req_length = read(clientfd, buffer, 30000);
 	if (req_length < 0)
@@ -29,8 +29,10 @@ void web_send_hello(int clientfd, void * extra_data)
 		perror("In read");
 		return;
 	}
+	printf("%s\n", buffer);
 
-
+	// STEP 2: Handle client request
+	// STEP 2a: Obtain data from database as necessary
 	// Setup query
 	char QUERY[] = "SELECT * FROM number;";
 	db_stmt * stmt = new_stmt(conn, QUERY, sizeof(QUERY));
@@ -49,21 +51,44 @@ void web_send_hello(int clientfd, void * extra_data)
 	}
 	printf("End\n");
 
+	// STEP 3: Send response
+	// STEP 3a: Load corresponding file
+	char * file_buffer = NULL;
+	long length;
+	FILE * f = fopen("site/index.html", "r");
+	if (f)
+	{
+		// Get length
+		fseek(f, 0, SEEK_END);
+		length = ftell(f);
 
-	// HTTP Response Message has a header and a body
-	// separated by an empty line
-	char * response = "HTTP/1.1 200 OK\n"
-		"Content-Type: text/plain\n"
-		"Content-Length: 12\n"
+		// Initialize buffer
+		file_buffer = malloc(length);
+		if (file_buffer)
+		{
+			// Read file into buffer
+			fseek(f, 0, SEEK_SET);
+			fread(file_buffer, 1, length, f);
+		}
+
+		fclose(f);
+	}
+
+	// STEP 3b: Setup response
+	char response[] = "HTTP/1.1 200 OK\n"
+		"Content-Type: text/html\n"
+		"Content-Length: %ld\n"
 		"\n"
-		"Hello world!";
+		"%s";
 
-	// HTTP Response goes here
-	printf("%s\n", buffer);
-	write(clientfd, response, strlen(response));
+	sprintf(buffer, response, length, file_buffer);
+
+	// STEP 3c: Send response
+	write(clientfd, buffer, strlen(buffer));
 
 
-	// Clean DB data at the end
+	// STEP 4: Clean data
+	free(file_buffer);
 	clean_row(&row);
 	clean_stmt(&stmt);
 }
@@ -82,9 +107,10 @@ int main()
 	server = new_server(HTTP_PORT, web_send_hello);
 	run_server(&server, conn);
 
-	// Should not reach here except on error
+	// Clean up
+	int result = !(server.is_successful);
 	clear_server(&server);
 	clean_conn(&conn);
 
-	return 1;
+	return result;
 }

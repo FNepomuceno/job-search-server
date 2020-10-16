@@ -5,16 +5,13 @@
 #include "database.h"
 #include "webserver.h"
 
-void web_send_hello(int clientfd)
+void web_send_hello(int clientfd, void * extra_data)
 {
-	// HTTP Response Message has a header and a body
-	// separated by an empty line
-	char * response = "HTTP/1.1 200 OK\n"
-		"Content-Type: text/plain\n"
-		"Content-Length: 12\n"
-		"\n"
-		"Hello world!";
+	// Obtain DB connection from extra_data
+	db_conn * conn = (db_conn *) extra_data;
 
+
+	// Read request from client
 	char buffer[30000] = {0};
 	long req_length = read(clientfd, buffer, 30000);
 	if (req_length < 0)
@@ -23,23 +20,12 @@ void web_send_hello(int clientfd)
 		return;
 	}
 
-	// HTTP Response goes here
-	printf("%s\n", buffer);
-	write(clientfd, response, strlen(response));
-}
 
-char DB_NAME[] = "test.db";
-char QUERY[] = "SELECT * FROM number;";
-
-int HTTP_PORT = 8080;
-
-int main()
-{
-	// Setup database and query
-	db_conn * conn = new_conn(DB_NAME);
+	// Setup query
+	char QUERY[] = "SELECT * FROM number;";
 	db_stmt * stmt = new_stmt(conn, QUERY, sizeof(QUERY));
 
-	// Print results
+	// Obtain and print results
 	printf("Data:\n\n");
 	db_row * row = new_row(stmt);
 	for (; row->has_value; step_row(row))
@@ -53,14 +39,40 @@ int main()
 	}
 	printf("End\n");
 
+
+	// HTTP Response Message has a header and a body
+	// separated by an empty line
+	char * response = "HTTP/1.1 200 OK\n"
+		"Content-Type: text/plain\n"
+		"Content-Length: 12\n"
+		"\n"
+		"Hello world!";
+
+	// HTTP Response goes here
+	printf("%s\n", buffer);
+	write(clientfd, response, strlen(response));
+
+
+	// Clean DB data at the end
+	clean_row(&row);
+	clean_stmt(&stmt);
+}
+
+
+int HTTP_PORT = 8080;
+
+int main()
+{
+	// Setup database
+	char DB_NAME[] = "test.db";
+	db_conn * conn = new_conn(DB_NAME);
+
 	// Setup and run server
 	web_server server = new_server(HTTP_PORT, web_send_hello);
-	run_server(&server);
+	run_server(&server, conn);
 
 	// Should not reach here except on error
 	clear_server(&server);
-	clean_row(&row);
-	clean_stmt(&stmt);
 	clean_conn(&conn);
 
 	return 1;

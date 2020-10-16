@@ -12,7 +12,7 @@ void clear_server(web_server * server)
 	server->server_fd = 0;
 }
 
-web_server new_server(int port, void (*handle_client)(int))
+web_server new_server(int port, handle_func handle_client)
 {
 	web_server result;
 	result.is_successful = true;
@@ -26,6 +26,11 @@ web_server new_server(int port, void (*handle_client)(int))
 		result.is_successful = false;
 		return result;
 	}
+
+	// Make socket "reusable"
+	int option = 1;
+	setsockopt(result.server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
+			sizeof(option));
 
 	// Make internet-style socket address structure
 	result.addrlen = sizeof(result.address);
@@ -59,7 +64,7 @@ web_server new_server(int port, void (*handle_client)(int))
 	return result;
 }
 
-void run_server(web_server * server)
+void run_server(web_server * server, void * extra_data)
 {
 	if (!(server->is_successful)) return;
 
@@ -77,7 +82,7 @@ void run_server(web_server * server)
 			return;
 		}
 
-		(server->handle_client)(clientfd);
+		(server->handle_client)(clientfd, extra_data);
 		close(clientfd);
 	}
 }

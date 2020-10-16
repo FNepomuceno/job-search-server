@@ -1,9 +1,19 @@
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "database.h"
 #include "webserver.h"
+
+web_server server;
+
+void sigintHandler(int signum)
+{
+	// End the web_server loop
+	printf("Closing server");
+	server.is_running = false;
+}
 
 void web_send_hello(int clientfd, void * extra_data)
 {
@@ -58,17 +68,18 @@ void web_send_hello(int clientfd, void * extra_data)
 	clean_stmt(&stmt);
 }
 
-
-int HTTP_PORT = 8080;
-
 int main()
 {
+	// Set signal handler
+	signal(SIGINT, sigintHandler);
+
 	// Setup database
 	char DB_NAME[] = "test.db";
 	db_conn * conn = new_conn(DB_NAME);
 
 	// Setup and run server
-	web_server server = new_server(HTTP_PORT, web_send_hello);
+	int HTTP_PORT = 8080;
+	server = new_server(HTTP_PORT, web_send_hello);
 	run_server(&server, conn);
 
 	// Should not reach here except on error

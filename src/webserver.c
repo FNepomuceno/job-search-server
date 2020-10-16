@@ -17,6 +17,7 @@ web_server new_server(int port, handle_func handle_client)
 	web_server result;
 	result.is_successful = true;
 	result.handle_client = handle_client;
+	result.is_running = false;
 
 	// Create socket file descriptor
 	result.server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -68,7 +69,8 @@ void run_server(web_server * server, void * extra_data)
 {
 	if (!(server->is_successful)) return;
 
-	while(true)
+	server->is_running = true;
+	while(server->is_running)
 	{
 		int clientfd = accept(
 			server->server_fd,

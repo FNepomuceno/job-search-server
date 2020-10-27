@@ -55,7 +55,7 @@ void web_send_hello(int clientfd, void * extra_data)
 	// STEP 3a: Load corresponding file
 	char * file_buffer = NULL;
 	long length;
-	FILE * f = fopen("site/index.html", "r");
+	FILE * f = fopen("static/html/index.html", "r");
 	if (f)
 	{
 		// Get length

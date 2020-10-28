@@ -22,14 +22,60 @@ void web_send_hello(int clientfd, void * extra_data)
 	db_conn * conn = (db_conn *) extra_data;
 
 	// STEP 1: Read and parse client request
-	char buffer[30000] = {0};
-	long req_length = read(clientfd, buffer, 30000);
-	if (req_length < 0)
+	// STEP 1a: Read header
+	char buffer[8192] = {0};
+	long count = read(clientfd, buffer, 8191);
+	if (count < 0)
 	{
 		perror("In read");
 		return;
 	}
-	printf("%s\n", buffer);
+
+	// STEP 1b: Find where header ends
+	char * header_end = strstr(buffer, "\r\n\r\n");
+	if (header_end == NULL)
+	{
+		fprintf(stderr, "Header too large! Received:\n");
+		fprintf(stderr, "%s\n", buffer);
+	}
+	long header_len = header_end - buffer;
+
+	// STEP 1c: Parse header
+	char line_end[] = "\r\n";
+
+	char * cur_line = buffer;
+	long total_length = 0;
+	int line_num = 0;
+
+	while (total_length < header_len)
+	{
+		char * next_line = strstr(cur_line, line_end);
+		long cur_length = next_line - cur_line;
+		if (next_line == NULL) break;
+
+		if (line_num == 0) // First line is the request-line
+		{
+			printf("Request-line: %.*s\n", (int)cur_length, cur_line);
+		}
+		else // Next several lines are the header-lines
+		{
+			char separator[] = ": ";
+			char * value = strstr(cur_line, separator) + 2;
+			long field_length = value - 2 - cur_line;
+			printf("Field: %.*s\n", (int)field_length, cur_line);
+			printf(
+				"Value: %.*s\n",
+				(int)(cur_length-2-field_length),
+				value
+			);
+		}
+		total_length += cur_length + 2;
+		cur_line = next_line + 2;
+		line_num += 1;
+	}
+	printf("Total length: %ld\n", total_length);
+
+	// STEP 1d: Obtain body if exists
 
 	// STEP 2: Handle client request
 	// STEP 2a: Obtain data from database as necessary

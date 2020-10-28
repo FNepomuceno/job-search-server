@@ -108,7 +108,8 @@ void web_send_hello(int clientfd, void * extra_data)
         length = ftell(f);
 
         // Initialize buffer
-        file_buffer = malloc(length);
+        file_buffer = malloc(length+1);
+        file_buffer[length] = '\0';
         if (file_buffer)
         {
             // Read file into buffer
@@ -126,10 +127,11 @@ void web_send_hello(int clientfd, void * extra_data)
         "\n"
         "%s";
 
-    sprintf(buffer, response, length, file_buffer);
+    char response_buffer[30000];
+    sprintf(response_buffer, response, length, file_buffer);
 
     // STEP 3c: Send response
-    write(clientfd, buffer, strlen(buffer));
+    write(clientfd, response_buffer, strlen(response_buffer));
 
 
     // STEP 4: Clean data

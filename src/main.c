@@ -12,7 +12,6 @@ web_server server;
 void sigintHandler(int signum)
 {
     // End the web_server loop
-    printf("Closing server");
     server.is_running = false;
 }
 

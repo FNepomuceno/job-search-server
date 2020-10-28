@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -70,6 +71,7 @@ void run_server(web_server * server, void * extra_data)
     if (!(server->is_successful)) return;
 
     server->is_running = true;
+    printf("Starting server\n");
     while(server->is_running)
     {
         int clientfd = accept(
@@ -79,8 +81,15 @@ void run_server(web_server * server, void * extra_data)
         );
         if (clientfd < 0)
         {
-            perror("Could not accept connection");
-            server->is_successful = false;
+            if (errno == EINTR && !server->is_running)
+            {
+                printf("\nClosing server\n");
+            }
+            else
+            {
+                perror("Could not accept connection");
+                server->is_successful = false;
+            }
             return;
         }
 

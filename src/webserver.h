@@ -8,12 +8,12 @@ typedef void (*handle_func) (int, void *);
 
 typedef struct web_server
 {
-	int server_fd;
-	struct sockaddr_in address;
-	int addrlen;
-	bool is_successful;
-	bool is_running;
-	handle_func handle_client;
+    int server_fd;
+    struct sockaddr_in address;
+    int addrlen;
+    bool is_successful;
+    bool is_running;
+    handle_func handle_client;
 } web_server;
 
 void clear_server(web_server * server);

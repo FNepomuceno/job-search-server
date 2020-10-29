@@ -20,6 +20,25 @@ void clean_http_request(http_request * req)
     free(req->header_lines);
 }
 
+void print_request(http_request * req)
+{
+    if (!req->is_successful)
+    {
+        printf("INVALID HTTP REQUEST\n");
+        return;
+    }
+
+    printf("METHOD: %s\n", req->method);
+    printf("URI: %s\n", req->uri);
+    printf("VERSION: %s\n", req->version);
+    for (int i = 0; i < req->num_lines; i++)
+    {
+        printf("FIELD: %s\n", req->header_lines[2*i]);
+        printf("VALUE: %s\n", req->header_lines[2*i+1]);
+    }
+    printf("BODY: %s\n", req->body);
+}
+
 http_request read_header(int clientfd)
 {
 #define REQ_BUFFER_LEN 500

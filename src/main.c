@@ -28,15 +28,7 @@ void web_send_hello(int clientfd, void * extra_data)
         clean_http_request(&client_req);
         return;
     }
-    printf("METHOD: %s\n", client_req.method);
-    printf("URI: %s\n", client_req.uri);
-    printf("VERSION: %s\n", client_req.version);
-    for (int i = 0; i < client_req.num_lines; i++)
-    {
-        printf("FIELD: %s\n", client_req.header_lines[2*i]);
-        printf("VALUE: %s\n", client_req.header_lines[2*i+1]);
-    }
-    printf("BODY: %s\n", client_req.body);
+    print_request(&client_req);
 
     // STEP 2: Handle client request
     // STEP 2a: Obtain data from database as necessary

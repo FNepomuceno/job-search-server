@@ -16,6 +16,7 @@ typedef struct http_request
 } http_request;
 
 void clean_http_request(http_request * req);
+void print_request(http_request * req);
 http_request read_header(int clientfd);
 
 #endif

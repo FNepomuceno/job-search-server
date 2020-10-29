@@ -44,8 +44,9 @@ void clean_http_request(http_request * req)
 
 http_request read_header(int clientfd)
 {
+#define REQ_BUFFER_LEN 500
     http_request result;
-    char buffer[8192];
+    char buffer[REQ_BUFFER_LEN];
 
     // STEP 0: Provide dummy values for struct
     result.method = NULL;
@@ -59,8 +60,9 @@ http_request read_header(int clientfd)
 
     // STEP 1: Get request from client
     // - Reject if read is not successful
-    long count = read(clientfd, buffer, 8191);
+    long count = read(clientfd, buffer, REQ_BUFFER_LEN-1);
     if (count < 0) return result;
+    buffer[count] = '\0';
 
     // STEP 2: Find where header ends
     // - Reject request if header does not fit within buffer
@@ -133,7 +135,7 @@ http_request read_header(int clientfd)
 
     // STEP 5: Read header lines
     cur_line = strstr(buffer, "\r\n") + 2;
-    int body_length = 0;
+    long body_length = 0;
     for (int i = 0; i < result.num_lines; i++)
     {
         char * next_line = strstr(cur_line, "\r\n");
@@ -162,9 +164,22 @@ http_request read_header(int clientfd)
         cur_line = next_line + 2;
     }
 
-    // STEP 6: Read body (if exists) TODO
-    // char * body_start = header_end + 4;
-    printf("Body has %d characters\n", body_length);
+    // STEP 6: Read body
+    char * body_start = header_end + 4;
+    result.body = malloc((body_length+1) * sizeof (char));
+    result.body[body_length] = '\0';
+
+    long body_chunk_len = count - (body_start - buffer);
+    memcpy(result.body, body_start, body_chunk_len);
+
+    long index = body_chunk_len;
+    while(index < body_length)
+    {
+        long read_len = read(clientfd, buffer, REQ_BUFFER_LEN-1);
+        memcpy(result.body + index, buffer, read_len);
+
+        index += read_len;
+    }
 
     // STEP 7: Finalize struct
     result.is_successful = true;
@@ -188,6 +203,7 @@ void web_send_hello(int clientfd, void * extra_data)
             printf("FIELD: %s\n", client_req.header_lines[2*i]);
             printf("VALUE: %s\n", client_req.header_lines[2*i+1]);
         }
+        printf("BODY: %s\n", client_req.body);
     }
 
     // STEP 2: Handle client request
@@ -236,8 +252,9 @@ void web_send_hello(int clientfd, void * extra_data)
 
     // STEP 3b: Setup response
     char response_buffer[30000];
-    if (strcmp(client_req.method, "GET") == 0
-            && strcmp(client_req.uri, "/") == 0)
+    if (client_req.is_successful
+        && strcmp(client_req.method, "GET") == 0
+        && strcmp(client_req.uri, "/") == 0)
     {
         char response[] = "HTTP/1.1 200 OK\n"
             "Content-Type: text/html\n"

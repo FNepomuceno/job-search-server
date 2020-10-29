@@ -190,9 +190,6 @@ void web_send_hello(int clientfd, void * extra_data)
         }
     }
 
-    // Clean up struct
-    clean_http_request(&client_req);
-
     // STEP 2: Handle client request
     // STEP 2a: Obtain data from database as necessary
     // Setup query
@@ -238,20 +235,33 @@ void web_send_hello(int clientfd, void * extra_data)
     }
 
     // STEP 3b: Setup response
-    char response[] = "HTTP/1.1 200 OK\n"
-        "Content-Type: text/html\n"
-        "Content-Length: %ld\n"
-        "\n"
-        "%s";
-
     char response_buffer[30000];
-    sprintf(response_buffer, response, length, file_buffer);
+    if (strcmp(client_req.method, "GET") == 0
+            && strcmp(client_req.uri, "/") == 0)
+    {
+        char response[] = "HTTP/1.1 200 OK\n"
+            "Content-Type: text/html\n"
+            "Content-Length: %ld\n"
+            "\n"
+            "%s";
+        sprintf(response_buffer, response, length, file_buffer);
+    }
+    else
+    {
+        char response[] = "HTTP/1.1 404 Not Found\n"
+            "Content-Type: text/plain\n"
+            "Content-Length: 4\n"
+            "\n"
+            "Nope";
+        sprintf(response_buffer, response, length, file_buffer);
+    }
 
     // STEP 3c: Send response
     write(clientfd, response_buffer, strlen(response_buffer));
 
 
     // STEP 4: Clean data
+    clean_http_request(&client_req);
     free(file_buffer);
     clean_row(&row);
     clean_stmt(&stmt);

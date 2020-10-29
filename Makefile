@@ -19,7 +19,6 @@ all:
 debug:
 	mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(DFLAGS) -o $(DTARGET) $(FILES) $(LDFLAGS)
-	./$(DTARGET)
 
 clean:
 	$(RM) $(BUILD_DIR)

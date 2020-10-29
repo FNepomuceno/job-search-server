@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,6 +133,7 @@ http_request read_header(int clientfd)
 
     // STEP 5: Read header lines
     cur_line = strstr(buffer, "\r\n") + 2;
+    int body_length = 0;
     for (int i = 0; i < result.num_lines; i++)
     {
         char * next_line = strstr(cur_line, "\r\n");
@@ -150,13 +152,19 @@ http_request read_header(int clientfd)
         memcpy(result.header_lines[2*i+1], field_end+2, value_len);
         result.header_lines[2*i+1][value_len] = '\0';
 
-        // TODO if field is "Content-Length", save the value for STEP 6
+        // STEP 5c: Get the size of the body
+        // - Ignore the "Transfer-Encoding" header rule
+        if (strcmp(result.header_lines[2*i], "Content-Length") == 0)
+        {
+            body_length = strtoimax(result.header_lines[2*i+1], NULL, 10);
+        }
 
         cur_line = next_line + 2;
     }
 
     // STEP 6: Read body (if exists) TODO
     // char * body_start = header_end + 4;
+    printf("Body has %d characters\n", body_length);
 
     // STEP 7: Finalize struct
     result.is_successful = true;

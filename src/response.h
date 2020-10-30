@@ -18,6 +18,7 @@ typedef struct http_response
     int status_code;
 } http_response;
 
+void clean_http_response(http_response * res);
 http_response handle_action(web_action * action);
 
 #endif

@@ -100,8 +100,7 @@ void web_send_hello(int clientfd, void * extra_data)
 
 
     // STEP 6: Clean data
-    // clean_response(&raw_response); // TODO replace below with this
-    free(raw_response.content);
+    clean_http_response(&raw_response);
     clean_http_request(&client_req);
     clean_row(&row);
     clean_stmt(&stmt);

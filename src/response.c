@@ -4,6 +4,11 @@
 
 #include "response.h"
 
+void clean_http_response(http_response * res)
+{
+    free(res->content);
+}
+
 http_response prepare_raw_text(char * data, int proposed_code)
 {
     http_response result;

@@ -55,37 +55,11 @@ void web_send_hello(int clientfd, void * extra_data)
     printf("End\n");
 
     // STEP 4: Setup response
-    // STEP 4a: Get reason phrase from status code
-    char * reason_phrase = NULL;
-    switch (raw_response.status_code)
-    {
-    case 200:
-        reason_phrase = "OK";
-        break;
-    case 404:
-        reason_phrase = "Not Found";
-        break;
-    case 500:
-        reason_phrase = "Internal Server Error";
-        break;
-    }
+    // STEP 4a: Get remaining required data for template
+    char * reason_phrase = status_code_as_str(raw_response.status_code);
+    char * type_string = content_type_as_str(raw_response.content_type);
 
-    // STEP 4b: Get type string from content type
-    char * type_string;
-    switch (raw_response.content_type)
-    {
-    case TEXT_PLAIN:
-        type_string = "text/plain";
-        break;
-    case TEXT_HTML:
-        type_string = "text/html";
-        break;
-    default:
-        type_string = "text/plain";
-        break;
-    }
-
-    // STEP 4c: Format response
+    // STEP 4b: Format response
     char response_buffer[30000];
     char response_template[] = "HTTP/1.1 %d %s\r\n"
         "Content-Type: %s\r\n"

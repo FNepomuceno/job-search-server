@@ -81,3 +81,43 @@ http_response handle_action(web_action * action)
 
     return result;
 }
+
+char * status_code_as_str(int status_code)
+{
+    char * result = "Bad Request";
+
+    switch (status_code)
+    {
+    case 200:
+        result = "OK";
+        break;
+    case 404:
+        result = "Not Found";
+        break;
+    case 500:
+        result = "Internal Server Error";
+        break;
+    }
+
+    return result;
+}
+
+char * content_type_as_str(content_type type)
+{
+    char * result;
+
+    switch (type)
+    {
+    case TEXT_PLAIN:
+        result = "text/plain";
+        break;
+    case TEXT_HTML:
+        result = "text/html";
+        break;
+    default:
+        result = "text/plain";
+        break;
+    }
+
+    return result;
+}

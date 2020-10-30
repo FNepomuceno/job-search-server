@@ -21,4 +21,7 @@ typedef struct http_response
 void clean_http_response(http_response * res);
 http_response handle_action(web_action * action);
 
+char * status_code_as_str(int status_code);
+char * content_type_as_str(content_type type);
+
 #endif

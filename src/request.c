@@ -41,7 +41,7 @@ void print_request(http_request * req)
 
 http_request read_header(int clientfd)
 {
-#define REQ_BUFFER_LEN 500
+#define REQ_BUFFER_LEN 8192
     http_request result;
     char buffer[REQ_BUFFER_LEN];
 

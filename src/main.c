@@ -36,8 +36,6 @@ void web_send_hello(int clientfd, void * extra_data)
 
     // STEP 3: Handle request
     http_response raw_response = handle_action(&server_action);
-    printf("Return code %d using content: %s\n",
-            raw_response.status_code, raw_response.content);
 
     // Sample getting data from query
     char QUERY[] = "SELECT * FROM number;";
@@ -56,51 +54,46 @@ void web_send_hello(int clientfd, void * extra_data)
     }
     printf("End\n");
 
-    // Sample getting data from file
-    char * file_buffer = NULL;
-    long length;
-    FILE * f = fopen("static/html/index.html", "r");
-    if (f)
-    {
-        // Get length
-        fseek(f, 0, SEEK_END);
-        length = ftell(f);
-
-        // Initialize buffer
-        file_buffer = malloc(length+1);
-        file_buffer[length] = '\0';
-        if (file_buffer)
-        {
-            // Read file into buffer
-            fseek(f, 0, SEEK_SET);
-            fread(file_buffer, 1, length, f);
-        }
-
-        fclose(f);
-    }
-
     // STEP 4: Setup response
-    // Dummy response setup
+    // STEP 4a: Get reason phrase from status code
+    char * reason_phrase = NULL;
+    switch (raw_response.status_code)
+    {
+    case 200:
+        reason_phrase = "OK";
+        break;
+    case 404:
+        reason_phrase = "Not Found";
+        break;
+    case 500:
+        reason_phrase = "Internal Server Error";
+        break;
+    }
+
+    // STEP 4b: Get type string from content type
+    char * type_string;
+    switch (raw_response.content_type)
+    {
+    case TEXT_PLAIN:
+        type_string = "text/plain";
+        break;
+    case TEXT_HTML:
+        type_string = "text/html";
+        break;
+    default:
+        type_string = "text/plain";
+        break;
+    }
+
+    // STEP 4c: Format response
     char response_buffer[30000];
-    if (strcmp(client_req.method, "GET") == 0
-        && strcmp(client_req.uri, "/") == 0)
-    {
-        char response[] = "HTTP/1.1 200 OK\n"
-            "Content-Type: text/html\n"
-            "Content-Length: %ld\n"
-            "\n"
-            "%s";
-        sprintf(response_buffer, response, length, file_buffer);
-    }
-    else
-    {
-        char response[] = "HTTP/1.1 404 Not Found\n"
-            "Content-Type: text/plain\n"
-            "Content-Length: 4\n"
-            "\n"
-            "Nope";
-        sprintf(response_buffer, response, length, file_buffer);
-    }
+    char response_template[] = "HTTP/1.1 %d %s\r\n"
+        "Content-Type: %s\r\n"
+        "Content-Length: %d\r\n\r\n"
+        "%s";
+    sprintf(response_buffer, response_template, raw_response.status_code,
+            reason_phrase, type_string, raw_response.content_length,
+            raw_response.content);
 
     // STEP 5: Send response
     write(clientfd, response_buffer, strlen(response_buffer));
@@ -110,7 +103,6 @@ void web_send_hello(int clientfd, void * extra_data)
     // clean_response(&raw_response); // TODO replace below with this
     free(raw_response.content);
     clean_http_request(&client_req);
-    free(file_buffer);
     clean_row(&row);
     clean_stmt(&stmt);
 }

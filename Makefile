@@ -8,7 +8,7 @@ SRC_DIR = src/
 BUILD_DIR = build
 TARGET = $(BUILD_DIR)/jobhuntserver
 DTARGET = $(BUILD_DIR)/test
-RAW_FILES = database.c main.c webserver.c request.c
+RAW_FILES = database.c main.c webserver.c request.c response.c
 FILES = $(addprefix $(SRC_DIR), $(RAW_FILES))
 RM = rm -rf
 

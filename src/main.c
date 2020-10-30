@@ -6,6 +6,7 @@
 
 #include "database.h"
 #include "request.h"
+#include "response.h"
 #include "webserver.h"
 
 web_server server;
@@ -32,17 +33,16 @@ void web_send_hello(int clientfd, void * extra_data)
 
     // STEP 2: Interpret client request
     web_action server_action = interpret_request(&client_req);
-    printf("Return code %d using data %s\n", server_action.http_code,
-            server_action.data);
 
     // STEP 3: Handle request
+    http_response raw_response = handle_action(&server_action);
+    printf("Return code %d using content: %s\n",
+            raw_response.status_code, raw_response.content);
 
-    // STEP 3a: Obtain data from database as necessary
-    // Setup query
+    // Sample getting data from query
     char QUERY[] = "SELECT * FROM number;";
     db_stmt * stmt = new_stmt(conn, QUERY, sizeof(QUERY));
 
-    // Obtain and print results
     printf("Data:\n\n");
     db_row * row = new_row(stmt);
     for (; row->has_value; step_row(row))
@@ -56,8 +56,7 @@ void web_send_hello(int clientfd, void * extra_data)
     }
     printf("End\n");
 
-    // STEP 4: Send response
-    // STEP 4a: Load corresponding file
+    // Sample getting data from file
     char * file_buffer = NULL;
     long length;
     FILE * f = fopen("static/html/index.html", "r");
@@ -80,7 +79,8 @@ void web_send_hello(int clientfd, void * extra_data)
         fclose(f);
     }
 
-    // STEP 4b: Setup response
+    // STEP 4: Setup response
+    // Dummy response setup
     char response_buffer[30000];
     if (strcmp(client_req.method, "GET") == 0
         && strcmp(client_req.uri, "/") == 0)
@@ -102,11 +102,13 @@ void web_send_hello(int clientfd, void * extra_data)
         sprintf(response_buffer, response, length, file_buffer);
     }
 
-    // STEP 4c: Send response
+    // STEP 5: Send response
     write(clientfd, response_buffer, strlen(response_buffer));
 
 
-    // STEP 5: Clean data
+    // STEP 6: Clean data
+    // clean_response(&raw_response); // TODO replace below with this
+    free(raw_response.content);
     clean_http_request(&client_req);
     free(file_buffer);
     clean_row(&row);

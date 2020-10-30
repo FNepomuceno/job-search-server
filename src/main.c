@@ -30,8 +30,14 @@ void web_send_hello(int clientfd, void * extra_data)
     }
     print_request(&client_req);
 
-    // STEP 2: Handle client request
-    // STEP 2a: Obtain data from database as necessary
+    // STEP 2: Interpret client request
+    web_action server_action = interpret_request(&client_req);
+    printf("Return code %d using data %s\n", server_action.http_code,
+            server_action.data);
+
+    // STEP 3: Handle request
+
+    // STEP 3a: Obtain data from database as necessary
     // Setup query
     char QUERY[] = "SELECT * FROM number;";
     db_stmt * stmt = new_stmt(conn, QUERY, sizeof(QUERY));
@@ -50,8 +56,8 @@ void web_send_hello(int clientfd, void * extra_data)
     }
     printf("End\n");
 
-    // STEP 3: Send response
-    // STEP 3a: Load corresponding file
+    // STEP 4: Send response
+    // STEP 4a: Load corresponding file
     char * file_buffer = NULL;
     long length;
     FILE * f = fopen("static/html/index.html", "r");
@@ -74,7 +80,7 @@ void web_send_hello(int clientfd, void * extra_data)
         fclose(f);
     }
 
-    // STEP 3b: Setup response
+    // STEP 4b: Setup response
     char response_buffer[30000];
     if (strcmp(client_req.method, "GET") == 0
         && strcmp(client_req.uri, "/") == 0)
@@ -96,11 +102,11 @@ void web_send_hello(int clientfd, void * extra_data)
         sprintf(response_buffer, response, length, file_buffer);
     }
 
-    // STEP 3c: Send response
+    // STEP 4c: Send response
     write(clientfd, response_buffer, strlen(response_buffer));
 
 
-    // STEP 4: Clean data
+    // STEP 5: Clean data
     clean_http_request(&client_req);
     free(file_buffer);
     clean_row(&row);

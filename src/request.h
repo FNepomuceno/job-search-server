@@ -15,8 +15,23 @@ typedef struct http_request
     bool is_successful;
 } http_request;
 
+typedef enum {
+    ACTION_FILE_PATH,
+    ACTION_SQL_QUERY,
+    ACTION_RAW_TEXT,
+} action_type;
+
+typedef struct web_action
+{
+    char * data;
+    action_type data_type;
+    int http_code;
+} web_action;
+
 void clean_http_request(http_request * req);
 void print_request(http_request * req);
 http_request read_header(int clientfd);
+
+web_action interpret_request(http_request * req);
 
 #endif

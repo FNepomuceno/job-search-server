@@ -182,3 +182,43 @@ http_request read_header(int clientfd)
     result.is_successful = true;
     return result;
 }
+
+web_action interpret_request(http_request * req)
+{
+    web_action result;
+    result.data = "Can't let ya do that";
+    result.data_type = ACTION_RAW_TEXT;
+    result.http_code = 404;
+
+    // Malformed request
+    if (!req->is_successful) {
+        result.data = "You dun messed up";
+        result.data_type = ACTION_RAW_TEXT;
+        result.http_code = 400;
+        return result;
+    }
+
+    // "GET /" (web)
+    if (strcmp(req->method, "GET") == 0 && strcmp(req->uri, "/") == 0)
+    {
+        result.data = "static/html/index.html";
+        result.data_type = ACTION_FILE_PATH;
+        result.http_code = 200;
+    }
+
+    // "GET /jobs" (api)
+    if (strcmp(req->method, "GET") == 0
+            && strncmp(req->uri, "/jobs", 4) == 0)
+    {
+        // Turn remainder of uri into a SQL query TODO
+    }
+
+    // "POST /jobs/new" (api)
+    if (strcmp(req->method, "POST") == 0
+            && strcmp(req->uri, "/jobs/new") == 0)
+    {
+        // Turn body into a SQL query TODO
+    }
+
+    return result;
+}

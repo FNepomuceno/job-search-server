@@ -56,8 +56,40 @@ http_response load_from_file(char * data, int proposed_code)
     return result;
 }
 
+http_response execute_sql_statement(char * data, int proposed_code,
+    db_conn * conn)
+{
+    http_response result;
+
+    result.content_type = APPLICATION_JSON;
+    result.status_code = proposed_code;
+
+    char * QUERY = "SELECT * FROM number;";
+    db_stmt * stmt = new_stmt(conn, QUERY, strlen(QUERY)+1);
+
+    printf("Data:\n");
+    db_row * row = new_row(stmt);
+    for (; row->has_value; step_row(row))
+    {
+        printf("Row: ");
+        for (int i = 0; i < row->num_cols; i++)
+        {
+            printf("%s ", (char *)row->values[i]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    // Clean up
+    clean_row(&row);
+    clean_stmt(&stmt);
+
+    result = prepare_raw_text("This is not a statement, yet", 500);
+    return result;
+}
+
 // Gets the string result of the action
-http_response handle_action(web_action * action)
+http_response handle_action(web_action * action, db_conn * conn)
 {
     http_response result;
 
@@ -67,8 +99,8 @@ http_response handle_action(web_action * action)
         result = load_from_file(action->data, action->http_code);
         break;
     case ACTION_SQL_QUERY:
-        // Execute SQL statement; get data if applicable TODO
-        result = prepare_raw_text("This is not a statement, yet", 500);
+        result = execute_sql_statement(action->data, action->http_code,
+                conn);
         break;
     case ACTION_RAW_TEXT:
         result = prepare_raw_text(action->data, action->http_code);

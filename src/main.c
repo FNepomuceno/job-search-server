@@ -35,24 +35,7 @@ void web_send_hello(int clientfd, void * extra_data)
     web_action server_action = interpret_request(&client_req);
 
     // STEP 3: Handle request
-    http_response raw_response = handle_action(&server_action);
-
-    // Sample getting data from query
-    char QUERY[] = "SELECT * FROM number;";
-    db_stmt * stmt = new_stmt(conn, QUERY, sizeof(QUERY));
-
-    printf("Data:\n\n");
-    db_row * row = new_row(stmt);
-    for (; row->has_value; step_row(row))
-    {
-        printf("Row:\n");
-        for (int i = 0; i < row->num_cols; i++)
-        {
-            printf("%s\n", (char *)row->values[i]);
-        }
-        printf("\n");
-    }
-    printf("End\n");
+    http_response raw_response = handle_action(&server_action, conn);
 
     // STEP 4: Setup response
     // STEP 4a: Get remaining required data for template
@@ -76,8 +59,6 @@ void web_send_hello(int clientfd, void * extra_data)
     // STEP 6: Clean data
     clean_http_response(&raw_response);
     clean_http_request(&client_req);
-    clean_row(&row);
-    clean_stmt(&stmt);
 }
 
 int main()

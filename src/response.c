@@ -64,26 +64,59 @@ http_response execute_sql_statement(char * data, int proposed_code,
     result.content_type = APPLICATION_JSON;
     result.status_code = proposed_code;
 
+    // Execute statement and get results
     db_stmt * stmt = new_stmt(conn, data, strlen(data)+1);
+    int str_len = 0;
 
-    printf("Data:\n");
+    // Set up dynamically sized array of char *
+    int capacity = 10;
+    int size = 0;
+    char ** rows = malloc(capacity * sizeof (char *));
+
+    // Get column names with the column data TODO
     db_row * row = new_row(stmt);
     for (; row->has_value; step_row(row))
     {
-        printf("Row: ");
         for (int i = 0; i < row->num_cols; i++)
         {
-            printf("%s ", (char *)row->values[i]);
+            if (size == capacity)
+            {
+                capacity *= 2;
+                rows = realloc(rows, capacity * sizeof (char *));
+            }
+
+            int str_size = strlen((char *)row->values[i]) + 1;
+            rows[size] = malloc(str_size);
+            memcpy(rows[size], row->values[i], str_size);
+            str_len += str_size;
+            size += 1;
         }
-        printf("\n");
     }
-    printf("\n");
+
+    // Move data into a single string
+    // Format result string into JSON TODO
+    char * res_str = malloc(str_len+1);
+    int offset = 0;
+    for (int i = 0; i < size; i++)
+    {
+        int str_size = strlen(rows[i]);
+        memcpy(res_str + offset, rows[i], str_size);
+        res_str[offset + str_size] = ' ';
+        offset += str_size + 1;
+
+        // Free rows[i] because we don't need it anymore
+        free(rows[i]);
+    }
+    res_str[str_len] = '\0';
+    printf("%s\n", res_str);
 
     // Clean up
+    free(rows);
     clean_row(&row);
     clean_stmt(&stmt);
 
-    result = prepare_raw_text("This is not a statement, yet", 500);
+    result = prepare_raw_text(res_str, 500);
+    free(res_str);
     return result;
 }
 

@@ -210,7 +210,13 @@ web_action interpret_request(http_request * req)
     if (strcmp(req->method, "GET") == 0
             && strncmp(req->uri, "/jobs", 4) == 0)
     {
-        // Turn remainder of uri into a SQL query TODO
+        // No extra queries case: get all columns from 'jobs' table
+        // Make sure nothing follows "/jobs" in URI TODO
+        result.data = "SELECT * FROM jobs;";
+        result.data_type = ACTION_SQL_QUERY;
+        result.http_code = 200;
+
+        // Handle other query cases TODO
     }
 
     // "POST /jobs/new" (api)

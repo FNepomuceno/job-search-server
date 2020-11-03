@@ -7,7 +7,8 @@ typedef enum
 {
     INVALID,
     TEXT_PLAIN,
-    TEXT_HTML
+    TEXT_HTML,
+    APPLICATION_JSON
 } content_type;
 
 typedef struct http_response

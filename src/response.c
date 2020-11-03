@@ -114,6 +114,9 @@ char * content_type_as_str(content_type type)
     case TEXT_HTML:
         result = "text/html";
         break;
+    case APPLICATION_JSON:
+        result = "application/json";
+        break;
     default:
         result = "text/plain";
         break;

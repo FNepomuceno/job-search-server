@@ -67,7 +67,7 @@ int main()
     signal(SIGINT, sigintHandler);
 
     // Setup database
-    char DB_NAME[] = "test.db";
+    char DB_NAME[] = "jobs.db";
     db_conn * conn = new_conn(DB_NAME);
 
     // Setup and run server

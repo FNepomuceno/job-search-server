@@ -64,8 +64,7 @@ http_response execute_sql_statement(char * data, int proposed_code,
     result.content_type = APPLICATION_JSON;
     result.status_code = proposed_code;
 
-    char * QUERY = "SELECT * FROM number;";
-    db_stmt * stmt = new_stmt(conn, QUERY, strlen(QUERY)+1);
+    db_stmt * stmt = new_stmt(conn, data, strlen(data)+1);
 
     printf("Data:\n");
     db_row * row = new_row(stmt);

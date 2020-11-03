@@ -39,5 +39,26 @@ td {
   <input type="submit" value="Submit">
 </form>
 
+<button id="job_request">Get applications</button>
+<script>
+let request_button = document.getElementById("job_request");
+request_button.addEventListener("click", (event) => {
+    // convert this into an asynchronous function TODO
+    console.log("Getting applications...");
+    let httpRequest = new XMLHttpRequest();
+    if (!httpRequest) return;
+
+    httpRequest.onreadystatechange = function () {
+        if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            console.log(`Response status: ${httpRequest.status}`);
+            console.log(`Response Text:\n${httpRequest.responseText}`);
+        }
+    };
+
+    httpRequest.open('GET', 'jobs');
+    httpRequest.send();
+});
+</script>
+
 </body>
 </html>

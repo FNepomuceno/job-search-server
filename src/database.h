@@ -32,6 +32,7 @@ typedef struct db_row
     void ** values;
     int num_cols;
     int * col_types;
+    char ** col_names;
     db_stmt * stmt;
     bool has_value; // true only if data is set
     bool is_successful;

@@ -97,8 +97,10 @@ void clear_row(db_row * row)
         for (int i = 0; i < row->num_cols; i++)
         {
             free(row->values[i]);
+            free(row->col_names[i]);
         }
         free(row->values);
+        free(row->col_names);
         row->num_cols = 0;
         free(row->col_types);
     }
@@ -129,11 +131,20 @@ void step_row(db_row * row)
         int num_cols = sqlite3_column_count(res);
         row->num_cols = num_cols;
 
-        // Get column types
+        // Get column types and names
         row->col_types = malloc(sizeof(int)*num_cols);
+        row->col_names = malloc(sizeof(char *)*num_cols);
         for (int i = 0; i < num_cols; i++)
         {
             row->col_types[i] = sqlite3_column_type(res, i);
+
+            const char * col_name = sqlite3_column_name(res, i);
+            int size = strlen((const char *)col_name)+1;
+
+            void * dest = malloc(size);
+            memcpy(dest, col_name, size);
+
+            row->col_names[i] = dest;
         }
 
         // Get values (extract as text)
@@ -172,6 +183,7 @@ db_row * new_row(db_stmt * stmt)
 {
     db_row * result = malloc(sizeof(db_row));
 
+    result->col_names = NULL;
     result->values = NULL;
     result->num_cols = 0;
     result->col_types = NULL;

@@ -73,23 +73,31 @@ http_response execute_sql_statement(char * data, int proposed_code,
     int size = 0;
     char ** rows = malloc(capacity * sizeof (char *));
 
-    // Get column names with the column data TODO
+    // Get column names and column data
     db_row * row = new_row(stmt);
     for (; row->has_value; step_row(row))
     {
         for (int i = 0; i < row->num_cols; i++)
         {
-            if (size == capacity)
+            if (size+1 >= capacity)
             {
                 capacity *= 2;
                 rows = realloc(rows, capacity * sizeof (char *));
             }
 
-            int str_size = strlen((char *)row->values[i]) + 1;
-            rows[size] = malloc(str_size);
-            memcpy(rows[size], row->values[i], str_size);
-            str_len += str_size;
-            size += 1;
+            // Add column name
+            int name_size = strlen((char *)row->col_names[i]) + 1;
+            rows[size] = malloc(name_size);
+            memcpy(rows[size], row->col_names[i], name_size);
+            str_len += name_size;
+
+            // Add column data
+            int data_size = strlen((char *)row->values[i]) + 1;
+            rows[size+1] = malloc(data_size);
+            memcpy(rows[size+1], row->values[i], data_size);
+            str_len += data_size;
+
+            size += 2;
         }
     }
 

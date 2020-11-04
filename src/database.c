@@ -131,34 +131,28 @@ void step_row(db_row * row)
         int num_cols = sqlite3_column_count(res);
         row->num_cols = num_cols;
 
-        // Get column types and names
+        // Get column data
         row->col_types = malloc(sizeof(int)*num_cols);
         row->col_names = malloc(sizeof(char *)*num_cols);
-        for (int i = 0; i < num_cols; i++)
-        {
-            row->col_types[i] = sqlite3_column_type(res, i);
-
-            const char * col_name = sqlite3_column_name(res, i);
-            int size = strlen((const char *)col_name)+1;
-
-            void * dest = malloc(size);
-            memcpy(dest, col_name, size);
-
-            row->col_names[i] = dest;
-        }
-
-        // Get values (extract as text)
         row->values = malloc(sizeof(void *)*num_cols);
         for (int i = 0; i < num_cols; i++)
         {
-            const unsigned char * text = sqlite3_column_text(
-                    res, i);
-            int size = strlen((const char *)text)+1;
+            // Column type
+            row->col_types[i] = sqlite3_column_type(res, i);
 
-            void * dest = malloc(sizeof(char)*size);
-            memcpy(dest, text, size);
+            // Column name
+            const char * col_name = sqlite3_column_name(res, i);
+            int name_size = strlen((const char *)col_name)+1;
 
-            row->values[i] = dest;
+            row->col_names[i] = malloc(name_size);
+            memcpy(row->col_names[i], col_name, name_size);
+
+            // Column data (as text)
+            const unsigned char * text = sqlite3_column_text(res, i);
+            int val_size = strlen((const char *)text)+1;
+
+            row->values[i] = malloc(val_size);
+            memcpy(row->values[i], text, val_size);
         }
 
         row->has_value = true;

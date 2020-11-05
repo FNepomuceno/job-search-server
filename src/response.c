@@ -50,8 +50,27 @@ http_response load_from_file(char * data, int proposed_code)
     fread(result.content, 1, length, f);
     fclose(f);
 
+    // Find file extension
+    int data_len = strlen(data);
+    char * extension = data + data_len;
+    while (*extension != '.') extension -= 1;
+
+    // Set content type based on file extension TODO
+    if (strcmp(extension, ".html") == 0 || strcmp(extension, ".htm") == 0)
+    {
+        result.content_type = TEXT_HTML;
+    }
+    else if (strcmp(extension, ".css") == 0)
+    {
+        result.content_type = TEXT_CSS;
+    }
+    else
+    {
+        result.content_type = TEXT_PLAIN;
+    }
+
+    // Finalize response
     result.status_code = proposed_code;
-    result.content_type = TEXT_HTML;
 
     return result;
 }
@@ -224,6 +243,9 @@ char * content_type_as_str(content_type type)
         break;
     case TEXT_HTML:
         result = "text/html";
+        break;
+    case TEXT_CSS:
+        result = "text/css";
         break;
     case APPLICATION_JSON:
         result = "application/json";

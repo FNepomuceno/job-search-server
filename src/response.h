@@ -9,6 +9,7 @@ typedef enum
     INVALID,
     TEXT_PLAIN,
     TEXT_HTML,
+    TEXT_CSS,
     APPLICATION_JSON
 } content_type;
 

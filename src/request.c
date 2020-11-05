@@ -224,9 +224,6 @@ web_action interpret_request(http_request * req)
         char * data = malloc(data_len + 1);
         sprintf(data, "static/%s", suffix);
 
-        printf("length should be %d\n", data_len);
-        printf("length is actually %ld\n", strlen(data));
-
         result.data = data;
         result.data_type = ACTION_FILE_PATH;
         result.http_code = 200;

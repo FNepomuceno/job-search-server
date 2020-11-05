@@ -61,9 +61,6 @@ http_response execute_sql_statement(char * data, int proposed_code,
 {
     http_response result;
 
-    result.content_type = APPLICATION_JSON;
-    result.status_code = proposed_code;
-
     // Execute statement and get results
     db_stmt * stmt = new_stmt(conn, data, strlen(data)+1);
     int str_len = 0;
@@ -106,11 +103,12 @@ http_response execute_sql_statement(char * data, int proposed_code,
     // Calculate how long the resulting string is
     int num_cols = row->num_cols;
     int num_results = size / (2 * num_cols);
-    int total_len = 15; // initial 14 for bare JSON + 1 for terminator
+    int total_len = 14; // initial 14 for bare JSON
     total_len += str_len; // includes strings plus spaces
     total_len += 3 * size; // includes quotes and :/,
     total_len += 4 * num_results; // includes `{}, ` for each result
-    char * res_str = malloc(total_len);
+    total_len -= 2 * (num_results + 1); // remove trailing commas
+    char * res_str = malloc(total_len+1);
 
     // Beginning
     sprintf(res_str, "{\"result\": [");
@@ -126,12 +124,24 @@ http_response execute_sql_statement(char * data, int proposed_code,
             int k = 2*num_cols*i + 2*j; // index into rows
             char * field = rows[k];
             char * value = rows[k+1];
-            sprintf(res_str + res_offset, "\"%s\": \"%s\", ", field,
+            sprintf(res_str + res_offset, "\"%s\": \"%s\"", field,
                     value);
-            res_offset += strlen(field) + strlen(value) + 8;
+            res_offset += strlen(field) + strlen(value) + 6;
+
+            if (j + 1 < num_cols)
+            {
+                sprintf(res_str + res_offset, ", ");
+                res_offset += 2;
+            }
         }
-        sprintf(res_str + res_offset, "}, ");
-        res_offset += 3;
+        sprintf(res_str + res_offset, "}");
+        res_offset += 1;
+
+        if (i + 1 < num_results)
+        {
+            sprintf(res_str + res_offset, ", ");
+            res_offset += 2;
+        }
     }
 
     // Ending
@@ -146,8 +156,11 @@ http_response execute_sql_statement(char * data, int proposed_code,
     clean_row(&row);
     clean_stmt(&stmt);
 
-    result = prepare_raw_text(res_str, 500);
-    free(res_str);
+    // Finalize result
+    result.content = res_str;
+    result.content_type = APPLICATION_JSON;
+    result.content_length = total_len;
+    result.status_code = proposed_code;
     return result;
 }
 

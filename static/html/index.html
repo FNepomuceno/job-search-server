@@ -2,44 +2,85 @@
 <head>
 <title>Job Hunt</title>
 <style>
+body {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    height: 100%;
+}
+
+div#header {
+    display: flex;
+    justify-content: center;
+    background-color: #FE6100;
+}
+
+div#content {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+    background-color: #FFB000;
+    padding: 2em 1em;
+}
+
+div#container {
+    display: flex;
+    flex-direction:column;
+    align-items:center;
+    max-width: 100em;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    margin: 1em;
+}
+
 table, th, td {
+    background-color: #FFD066;
 	border: 1px solid black;
 }
+
 td {
 	text-align: center;
 }
 </style>
 </head>
 <body>
-<h1>Job Hunt</h1>
+<div id="header">
+    <h1>Job Hunt</h1>
+</div>
+<div id="content">
+<div id="container">
+    <table>
+    <tr id="jobs_columns">
+        <th>Company</th>
+        <th>Position</th>
+        <th>Location</th>
+        <th>Date Applied</th>
+        <th>Status</th>
+        <th>Progress</th>
+        <th>Job App Link</th>
+        <th>Apply Method</th>
+        <th>Referrer</th>
+        <th>Interview Details</th>
+        <th>Last Updated</th>
+        <th>Resume Version</th>
+    </tr>
+    <tr>
+        <td colspan="12">No applications found</td>
+    </tr>
+    </table>
 
-<table>
-<tr id="jobs_columns">
-	<th>Company</th>
-	<th>Position</th>
-	<th>Location</th>
-	<th>Date Applied</th>
-	<th>Status</th>
-	<th>Progress</th>
-	<th>Job Application Link</th>
-	<th>Apply Method</th>
-	<th>Referrer</th>
-	<th>Interview details</th>
-	<th>Latest Update Date</th>
-	<th>Resume version</th>
-</tr>
-<tr>
-	<td colspan="12">No applications found</td>
-</tr>
-</table>
+    <form action="/", method="POST">
+      <label for="company">Company:</label><br>
+      <input type="text" id="company" name="company" value=""><br>
+      <input type="submit" value="Submit">
+    </form>
 
-<form action="/", method="POST">
-  <label for="company">Company:</label><br>
-  <input type="text" id="company" name="company" value=""><br>
-  <input type="submit" value="Submit">
-</form>
-
-<button id="job_request">Get applications</button>
+    <button id="job_request">Get applications</button>
+</div>
+</div>
 <script>
 let request_button = document.getElementById("job_request");
 request_button.addEventListener("click", (event) => {

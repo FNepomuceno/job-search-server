@@ -188,6 +188,7 @@ http_response handle_action(web_action * action, db_conn * conn)
         result = prepare_raw_text("You shouldn't be seeing this", 500);
         break;
     }
+    clean_web_action(action);
 
     return result;
 }

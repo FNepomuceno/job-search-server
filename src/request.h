@@ -26,12 +26,14 @@ typedef struct web_action
     char * data;
     action_type data_type;
     int http_code;
+    bool clean_data; // true if data is dynamically allocated
 } web_action;
 
 void clean_http_request(http_request * req);
 void print_request(http_request * req);
 http_request read_header(int clientfd);
 
+void clean_web_action(web_action * action);
 web_action interpret_request(http_request * req);
 
 #endif

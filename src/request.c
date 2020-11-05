@@ -183,12 +183,21 @@ http_request read_header(int clientfd)
     return result;
 }
 
+void clean_web_action(web_action * action)
+{
+    if (action->clean_data)
+    {
+        free(action->data);
+    }
+}
+
 web_action interpret_request(http_request * req)
 {
     web_action result;
     result.data = "Can't let ya do that";
     result.data_type = ACTION_RAW_TEXT;
     result.http_code = 404;
+    result.clean_data = false;
 
     // Malformed request
     if (!req->is_successful) {
@@ -204,6 +213,24 @@ web_action interpret_request(http_request * req)
         result.data = "static/html/index.html";
         result.data_type = ACTION_FILE_PATH;
         result.http_code = 200;
+    }
+
+    // "GET /static/*" (static files)
+    if (strcmp(req->method, "GET") == 0
+            && strncmp(req->uri, "/static/", 8) == 0)
+    {
+        char * suffix = req->uri + 8;
+        int data_len = 7 + strlen(suffix);
+        char * data = malloc(data_len + 1);
+        sprintf(data, "static/%s", suffix);
+
+        printf("length should be %d\n", data_len);
+        printf("length is actually %ld\n", strlen(data));
+
+        result.data = data;
+        result.data_type = ACTION_FILE_PATH;
+        result.http_code = 200;
+        result.clean_data = true;
     }
 
     // "GET /jobs" (api)

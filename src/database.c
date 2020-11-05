@@ -101,7 +101,6 @@ void clear_row(db_row * row)
         }
         free(row->values);
         free(row->col_names);
-        row->num_cols = 0;
         free(row->col_types);
     }
 }

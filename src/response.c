@@ -102,23 +102,46 @@ http_response execute_sql_statement(char * data, int proposed_code,
     }
 
     // Move data into a single string
-    // Format result string into JSON TODO
-    char * res_str = malloc(str_len+1);
-    int offset = 0;
-    for (int i = 0; i < size; i++)
-    {
-        int str_size = strlen(rows[i]);
-        memcpy(res_str + offset, rows[i], str_size);
-        res_str[offset + str_size] = ' ';
-        offset += str_size + 1;
 
-        // Free rows[i] because we don't need it anymore
-        free(rows[i]);
+    // Calculate how long the resulting string is
+    int num_cols = row->num_cols;
+    int num_results = size / (2 * num_cols);
+    int total_len = 15; // initial 14 for bare JSON + 1 for terminator
+    total_len += str_len; // includes strings plus spaces
+    total_len += 3 * size; // includes quotes and :/,
+    total_len += 4 * num_results; // includes `{}, ` for each result
+    char * res_str = malloc(total_len);
+
+    // Beginning
+    sprintf(res_str, "{\"result\": [");
+
+    // Results
+    int res_offset = 12; // accounts for `{"result": [`
+    for (int i = 0; i < num_results; i++)
+    {
+        sprintf(res_str + res_offset, "{");
+        res_offset += 1;
+        for (int j = 0; j < num_cols; j++)
+        {
+            int k = 2*num_cols*i + 2*j; // index into rows
+            char * field = rows[k];
+            char * value = rows[k+1];
+            sprintf(res_str + res_offset, "\"%s\": \"%s\", ", field,
+                    value);
+            res_offset += strlen(field) + strlen(value) + 8;
+        }
+        sprintf(res_str + res_offset, "}, ");
+        res_offset += 3;
     }
-    res_str[str_len] = '\0';
-    printf("%s\n", res_str);
+
+    // Ending
+    sprintf(res_str + res_offset, "]}");
 
     // Clean up
+    for (int i = 0; i < size; i++)
+    {
+        free(rows[i]);
+    }
     free(rows);
     clean_row(&row);
     clean_stmt(&stmt);

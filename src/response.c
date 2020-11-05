@@ -102,12 +102,14 @@ http_response execute_sql_statement(char * data, int proposed_code,
 
     // Calculate how long the resulting string is
     int num_cols = row->num_cols;
+    if (num_cols == 0) num_cols = 1;
     int num_results = size / (2 * num_cols);
     int total_len = 14; // initial 14 for bare JSON
     total_len += str_len; // includes strings plus spaces
     total_len += 3 * size; // includes quotes and :/,
     total_len += 4 * num_results; // includes `{}, ` for each result
-    total_len -= 2 * (num_results + 1); // remove trailing commas
+    total_len -= 2 * num_results; // remove trailing commas in results
+    if (num_results > 0) total_len -= 2; // and at the end of the results
     char * res_str = malloc(total_len+1);
 
     // Beginning

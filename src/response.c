@@ -35,6 +35,7 @@ http_response load_from_file(char * data, int proposed_code)
         // Replace with loading the 404 page instead TODO
         // Handle the 404 page not working 500 and raw text instead TODO
         result = prepare_raw_text("Page not found", 404);
+        return result;
     }
 
     // Get the file length

@@ -207,6 +207,15 @@ web_action interpret_request(http_request * req)
         return result;
     }
 
+    // "GET /favicon.ico" (icon)
+    if (strcmp(req->method, "GET") == 0
+            && strcmp(req->uri, "/favicon.ico") == 0)
+    {
+        result.data = "favicon.ico";
+        result.data_type = ACTION_FILE_PATH;
+        result.http_code = 200;
+    }
+
     // "GET /" (web)
     if (strcmp(req->method, "GET") == 0 && strcmp(req->uri, "/") == 0)
     {

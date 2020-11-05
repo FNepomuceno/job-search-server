@@ -15,7 +15,7 @@ typedef enum
 
 typedef struct http_response
 {
-    char * content;
+    void * content;
     content_type content_type;
     int content_length;
     int status_code;

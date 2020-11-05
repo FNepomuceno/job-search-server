@@ -19,9 +19,9 @@ http_response prepare_raw_text(char * data, int proposed_code)
     int data_len = strlen(data);
     result.content_length = data_len;
 
-    result.content = malloc((data_len+1) * sizeof (char));
+    result.content = malloc(data_len + 1);
     memcpy(result.content, data, data_len);
-    result.content[data_len] = '\0';
+    *((char *)result.content + data_len) = '\0';
 
     return result;
 }
@@ -45,7 +45,7 @@ http_response load_from_file(char * data, int proposed_code)
 
     // Get the file content
     result.content = malloc(length + 1);
-    result.content[length] = '\0';
+    *((char *)result.content + length) = '\0';
     fseek(f, 0, SEEK_SET);
     fread(result.content, 1, length, f);
     fclose(f);

@@ -46,14 +46,17 @@ void web_send_hello(int clientfd, void * extra_data)
     char response_buffer[30000];
     char response_template[] = "HTTP/1.1 %d %s\r\n"
         "Content-Type: %s\r\n"
-        "Content-Length: %d\r\n\r\n"
-        "%s";
+        "Content-Length: %d\r\n\r\n";
     sprintf(response_buffer, response_template, raw_response.status_code,
-            reason_phrase, type_string, raw_response.content_length,
-            raw_response.content);
+            reason_phrase, type_string, raw_response.content_length);
+
+    int header_size = strlen(response_buffer);
+    memcpy(response_buffer + header_size, raw_response.content,
+            raw_response.content_length);
 
     // STEP 5: Send response
-    write(clientfd, response_buffer, strlen(response_buffer));
+    write(clientfd, response_buffer,
+            header_size + raw_response.content_length);
 
 
     // STEP 6: Clean data

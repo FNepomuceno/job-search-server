@@ -194,8 +194,8 @@ void clean_web_action(web_action * action)
 web_action interpret_request(http_request * req)
 {
     web_action result;
-    result.data = "Can't let ya do that";
-    result.data_type = ACTION_RAW_TEXT;
+    result.data = "static/html/not_found.html";
+    result.data_type = ACTION_FILE_PATH;
     result.http_code = 404;
     result.clean_data = false;
 

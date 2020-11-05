@@ -32,10 +32,14 @@ http_response load_from_file(char * data, int proposed_code)
     FILE * f = fopen(data, "r");
     if (!f)
     {
-        // Replace with loading the 404 page instead TODO
-        // Handle the 404 page not working 500 and raw text instead TODO
-        result = prepare_raw_text("Page not found", 404);
-        return result;
+        if (strcmp(data, "static/html/not_found.html") == 0)
+        {
+            return prepare_raw_text("Could not find 404 page", 500);
+        }
+        else
+        {
+            return load_from_file("static/html/not_found.html", 404);
+        }
     }
 
     // Get the file length
@@ -56,7 +60,7 @@ http_response load_from_file(char * data, int proposed_code)
     char * extension = data + data_len;
     while (*extension != '.') extension -= 1;
 
-    // Set content type based on file extension TODO
+    // Set content type based on file extension
     if (strcmp(extension, ".html") == 0 || strcmp(extension, ".htm") == 0)
     {
         result.content_type = TEXT_HTML;

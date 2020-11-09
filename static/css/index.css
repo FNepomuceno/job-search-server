@@ -40,3 +40,17 @@ table, th, td {
 td {
 	text-align: center;
 }
+
+form {
+    background-color: #FFD066;
+	border: 1px solid black;
+    padding: 1em;
+}
+
+form h3 {
+    margin-top: 0;
+}
+
+form input {
+    margin-bottom: 1em;
+}

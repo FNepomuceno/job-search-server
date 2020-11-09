@@ -32,15 +32,35 @@
     </table>
 
     <form action="/", method="POST">
-      <label for="company">Company:</label><br>
-      <input type="text" id="company" name="company" value=""><br>
-      <input type="submit" value="Submit">
+        <h3>Add application</h3>
+        <label for="company">Company:</label><br />
+        <input type="text" id="company" name="company" value="" /><br />
+
+        <label for="position">Position:</label><br />
+        <input type="text" id="position" name="position" value="" /><br />
+
+        <label for="location">Location:</label><br />
+        <input type="text" id="location" name="location" value="" /><br />
+
+        <label for="app_link">Application Link:</label><br />
+        <input type="text" id="app_link" name="app_link" value="" /><br />
+
+        <label for="app_method">Application Method:</label><br />
+        <input type="text" id="app_method" name="app_method" value="" />
+        <br />
+
+        <label for="referrer">Referrer:</label><br />
+        <input type="text" id="referrer" name="referrer" value="" /><br />
+
+        <label for="version">Resume Version:</label><br />
+        <input type="text" id="version" name="version" value="" /><br />
+
+        <input type="submit" value="Submit" />
     </form>
 
     <button id="job_request">Get applications</button>
 </div>
 </div>
-<script src="/static/js/index.js" />
-
+<script src="/static/js/index.js"></script>
 </body>
 </html>

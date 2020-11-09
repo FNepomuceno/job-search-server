@@ -1,7 +1,6 @@
 let request_button = document.getElementById("job_request");
-request_button.addEventListener("click", (event) => {
+window.onload = function() {
     // convert this into an asynchronous function TODO
-    console.log("Getting applications...");
     let httpRequest = new XMLHttpRequest();
     if (!httpRequest) return;
 
@@ -10,7 +9,6 @@ request_button.addEventListener("click", (event) => {
                 && httpRequest.status == 200) {
             let json_response = JSON.parse(httpRequest.responseText);
             let rows = json_response.result;
-            console.log("Applications received.");
 
             // Clear out table
             let row_parent =
@@ -44,4 +42,4 @@ request_button.addEventListener("click", (event) => {
 
     httpRequest.open('GET', 'jobs');
     httpRequest.send();
-});
+};

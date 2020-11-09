@@ -10,6 +10,7 @@ typedef enum
     TEXT_PLAIN,
     TEXT_HTML,
     TEXT_CSS,
+    TEXT_JAVASCRIPT,
     IMAGE_XICON,
     APPLICATION_JSON
 } content_type;

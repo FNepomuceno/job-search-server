@@ -69,6 +69,10 @@ http_response load_from_file(char * data, int proposed_code)
     {
         result.content_type = TEXT_CSS;
     }
+    else if (strcmp(extension, ".js") == 0)
+    {
+        result.content_type = TEXT_JAVASCRIPT;
+    }
     else if (strcmp(extension, ".ico") == 0)
     {
         result.content_type = IMAGE_XICON;
@@ -255,6 +259,9 @@ char * content_type_as_str(content_type type)
         break;
     case TEXT_CSS:
         result = "text/css";
+        break;
+    case TEXT_JAVASCRIPT:
+        result = "text/javascript";
         break;
     case IMAGE_XICON:
         result = "image/x-icon";

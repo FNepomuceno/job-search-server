@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "request.h"
+#include "decode.h"
 
 void clean_http_request(http_request * req)
 {
@@ -256,7 +257,14 @@ web_action interpret_request(http_request * req)
     if (strcmp(req->method, "POST") == 0
             && strcmp(req->uri, "/jobs/new") == 0)
     {
+        // Parse body
+        query_map map = decode_query(req->body);
+
+        // Get required fields and their indices TODO
         // Turn body into a SQL query TODO
+
+        // Cleanup
+        clear_query_map(&map);
     }
 
     return result;

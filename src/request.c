@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "request.h"
@@ -202,7 +203,7 @@ web_action interpret_request(http_request * req)
 
     // Malformed request
     if (!req->is_successful) {
-        result.data = "You dun messed up";
+        result.data = "Something horribly wrong happened";
         result.data_type = ACTION_RAW_TEXT;
         result.http_code = 400;
         return result;
@@ -260,8 +261,73 @@ web_action interpret_request(http_request * req)
         // Parse body
         query_map map = decode_query(req->body);
 
-        // Get required fields and their indices TODO
-        // Turn body into a SQL query TODO
+        // Get required fields and their indices
+        int index_0 = key_index(&map, "company");
+        int index_1 = key_index(&map, "position");
+        int index_2 = key_index(&map, "location");
+        int index_6 = key_index(&map, "app_link");
+        int index_7 = key_index(&map, "app_method");
+        int index_8 = key_index(&map, "referrer");
+        int index_11 = key_index(&map, "version");
+
+        if (index_0 >= 0 && index_1 >= 0 && index_2 >= 0 && index_6
+                >= 0 && index_7 >= 0 && index_8 >= 0 && index_11 >= 0)
+        {
+            // All values to be inserted into the database
+            char * values[12];
+
+            // Get current date TODO
+            time_t cur_time = time(NULL);
+            struct tm *cur_time_gm = gmtime(&cur_time);
+            char date[100] = {0};
+            strftime(date, 99, "%a, %d %b %Y %H:%M:%S %Z", cur_time_gm);
+
+            // Set default values
+            values[3] = date;
+            values[4] = "Pending";
+            values[5] = "Applied";
+            values[9] = "None";
+            values[10] = date;
+
+            // Set from required fields
+            values[0] = map.values[index_0];
+            values[1] = map.values[index_1];
+            values[2] = map.values[index_2];
+            values[6] = map.values[index_6];
+            values[7] = map.values[index_7];
+            values[8] = map.values[index_8];
+            values[11] = map.values[index_11];
+
+            // Turn body into a SQL query
+            int stmt_len = 27; // "INSERT INTO jobs VALUES (" and ");"
+            stmt_len += 2 * 11; // ", " 11 times
+            stmt_len += 2 * 12; // quotes 12 times
+            for (int i = 0; i < 12; i++)
+            {
+                stmt_len += strlen(values[i]);
+            }
+
+            char *statement = malloc(stmt_len + 1);
+            sprintf(statement, "INSERT INTO jobs VALUES (\"%s\", \"%s\", "
+                "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
+                "\"%s\", \"%s\", \"%s\");", values[0], values[1],
+                values[2], values[3], values[4], values[5], values[6],
+                values[7], values[8], values[9], values[10],
+                values[11]);
+            statement[stmt_len] = '\0';
+
+            result.data = statement;
+            result.data_type = ACTION_SQL_QUERY;
+            result.http_code = 200;
+            result.clean_data = true;
+        }
+        else
+        {
+            // Malformed Request
+            result.data = "Some required fields are missing";
+            result.data_type = ACTION_RAW_TEXT;
+            result.http_code = 400;
+        }
 
         // Cleanup
         clear_query_map(&map);

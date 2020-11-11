@@ -89,7 +89,7 @@ http_response load_from_file(char * data, int proposed_code)
 }
 
 http_response execute_sql_statement(char * data, int proposed_code,
-    db_conn * conn)
+    char * redirect_uri, db_conn * conn)
 {
     http_response result;
 
@@ -191,10 +191,27 @@ http_response execute_sql_statement(char * data, int proposed_code,
     clean_stmt(&stmt);
 
     // Finalize result
-    result.content = res_str;
-    result.content_type = APPLICATION_JSON;
-    result.content_length = total_len;
-    result.status_code = proposed_code;
+    if (proposed_code / 100 == 3) // Status code is 3xx
+    {
+        printf("RESULT: %s\n", res_str);
+        free(res_str);
+
+        long uri_len = strlen(redirect_uri);
+        result.content = malloc(uri_len + 1);
+        ((char *)result.content)[uri_len] = '\0';
+        memcpy(result.content, redirect_uri, uri_len);
+
+        result.content_type = INVALID;
+        result.content_length = 0;
+        result.status_code = proposed_code;
+    }
+    else
+    {
+        result.content = res_str;
+        result.content_type = APPLICATION_JSON;
+        result.content_length = total_len;
+        result.status_code = proposed_code;
+    }
     return result;
 }
 
@@ -210,7 +227,7 @@ http_response handle_action(web_action * action, db_conn * conn)
         break;
     case ACTION_SQL_QUERY:
         result = execute_sql_statement(action->data, action->http_code,
-                conn);
+                action->redirect_uri, conn);
         break;
     case ACTION_RAW_TEXT:
         result = prepare_raw_text(action->data, action->http_code);
@@ -227,12 +244,18 @@ http_response handle_action(web_action * action, db_conn * conn)
 
 char * status_code_as_str(int status_code)
 {
-    char * result = "Bad Request";
+    char * result = "Unknown";
 
     switch (status_code)
     {
     case 200:
         result = "OK";
+        break;
+    case 303:
+        result = "See Other";
+        break;
+    case 400:
+        result = "Bad Request";
         break;
     case 404:
         result = "Not Found";

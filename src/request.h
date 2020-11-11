@@ -24,6 +24,7 @@ typedef enum {
 typedef struct web_action
 {
     char * data;
+    char * redirect_uri;
     action_type data_type;
     int http_code;
     bool clean_data; // true if data is dynamically allocated

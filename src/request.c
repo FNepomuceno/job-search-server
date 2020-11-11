@@ -197,6 +197,7 @@ web_action interpret_request(http_request * req)
 {
     web_action result;
     result.data = "static/html/not_found.html";
+    result.redirect_uri = "";
     result.data_type = ACTION_FILE_PATH;
     result.http_code = 404;
     result.clean_data = false;
@@ -314,11 +315,19 @@ web_action interpret_request(http_request * req)
                 values[2], values[3], values[4], values[5], values[6],
                 values[7], values[8], values[9], values[10],
                 values[11]);
+            /* Find why executing a bad SQL statement hangs TODO
+            sprintf(statement, "INSERT INTO jobs VALUES (\"%s\", \"%s\", "
+                "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
+                "\"%s\", \"%s\");", values[0], values[1],
+                values[2], values[3], values[4], values[5], values[6],
+                values[7], values[8], values[9], values[10]);
+            */
             statement[stmt_len] = '\0';
 
             result.data = statement;
+            result.redirect_uri = "/";
             result.data_type = ACTION_SQL_QUERY;
-            result.http_code = 200;
+            result.http_code = 303;
             result.clean_data = true;
         }
         else

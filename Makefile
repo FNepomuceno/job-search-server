@@ -1,7 +1,7 @@
 .PHONY: all, debug, clean
 
 CC = gcc
-DFLAGS = -g -Werror
+DFLAGS = -g -fsanitize=address -Werror
 CFLAGS = -Wall -ansi -pedantic -std=c11
 LDFLAGS = -lsqlite3
 SRC_DIR = src/

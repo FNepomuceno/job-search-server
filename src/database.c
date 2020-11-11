@@ -187,6 +187,7 @@ db_row * new_row(db_stmt * stmt)
     if (stmt == NULL || !(stmt->is_successful))
     {
         result->is_successful = false;
+        result->has_value = false;
     }
 
     step_row(result);

@@ -277,7 +277,7 @@ web_action interpret_request(http_request * req)
             // All values to be inserted into the database
             char * values[12];
 
-            // Get current date TODO
+            // Get current date
             time_t cur_time = time(NULL);
             struct tm *cur_time_gm = gmtime(&cur_time);
             char date[100] = {0};
@@ -315,13 +315,6 @@ web_action interpret_request(http_request * req)
                 values[2], values[3], values[4], values[5], values[6],
                 values[7], values[8], values[9], values[10],
                 values[11]);
-            /* Find why executing a bad SQL statement hangs TODO
-            sprintf(statement, "INSERT INTO jobs VALUES (\"%s\", \"%s\", "
-                "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
-                "\"%s\", \"%s\");", values[0], values[1],
-                values[2], values[3], values[4], values[5], values[6],
-                values[7], values[8], values[9], values[10]);
-            */
             statement[stmt_len] = '\0';
 
             result.data = statement;

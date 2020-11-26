@@ -47,8 +47,8 @@ function sleep(ms) {
 
 window.onload = async function() {
     while (true) {
-        await sleep(1 * 1000);
         refresh_jobs();
+        await sleep(60 * 1000);
         break;
     }
 };

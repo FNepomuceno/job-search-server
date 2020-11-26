@@ -1,45 +1,54 @@
 let request_button = document.getElementById("job_request");
-window.onload = function() {
-    // convert this into an asynchronous function TODO
-    let httpRequest = new XMLHttpRequest();
-    if (!httpRequest) return;
 
-    httpRequest.onreadystatechange = function () {
-        if (httpRequest.readyState === XMLHttpRequest.DONE
-                && httpRequest.status == 200) {
-            let json_response = JSON.parse(httpRequest.responseText);
-            let rows = json_response.result;
+function handle_response() {
+    let request = this;
+    if (request.status != 200) { return; }
 
-            // Clear out table
-            let row_parent =
-                document.getElementById("jobs_columns").parentElement;
-            while (row_parent.firstElementChild !=
-                    row_parent.lastElementChild) {
-                row_parent.removeChild(row_parent.lastElementChild);
-            }
+    let json_response = JSON.parse(request.responseText);
+    let rows = json_response.result;
 
-            // Add results
-            if (rows.length) {
-                for (let row of rows) {
-                    let new_row = document.createElement("tr");
-                    for (let value of Object.values(row)) {
-                        let new_cell = document.createElement("td");
-                        new_cell.innerHTML = value;
-                        new_row.appendChild(new_cell);
-                    }
-                    row_parent.appendChild(new_row);
-                }
-            } else {
-                let new_row = document.createElement("tr");
-                let new_cell = document.createElement("td");
-                new_cell.innerHTML = "No applications found";
-                new_cell.colSpan = 12;
-                new_row.appendChild(new_cell);
-                row_parent.appendChild(new_row);
+    // Modify fields as needed
+    // Change "app link" to link TODO
+    // Add link to "status" TODO
+    // Add link to "progress" TODO
+    // Add link to "interview details" TODO
+
+    // Clear out table TODO
+    let table = document.getElementById("jobs_table");
+    while (table.rows.length > 1) { table.deleteRow(1); }
+
+    // Add result rows
+    if (rows.length) {
+        for (let row of rows) {
+            let new_row = table.insertRow();
+            for (let value of Object.values(row)) {
+                let new_cell = new_row.insertCell();
+                new_cell.innerHTML = value;
             }
         }
-    };
+    } else {
+        let new_row = table.insertRow();
+        let new_cell = new_row.insertCell();
+        new_cell.innerHTML = "No applications found";
+        new_cell.colSpan = 12;
+    }
+}
 
+function refresh_jobs() {
+    let httpRequest = new XMLHttpRequest();
     httpRequest.open('GET', 'jobs');
+    httpRequest.onload = handle_response;
     httpRequest.send();
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+window.onload = async function() {
+    while (true) {
+        await sleep(1 * 1000);
+        refresh_jobs();
+        break;
+    }
 };

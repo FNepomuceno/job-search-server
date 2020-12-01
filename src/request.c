@@ -286,55 +286,45 @@ web_action interpret_request(http_request * req)
         int index_0 = key_index(&map, "company");
         int index_1 = key_index(&map, "position");
         int index_2 = key_index(&map, "location");
-        int index_6 = key_index(&map, "app_link");
-        int index_7 = key_index(&map, "app_method");
-        int index_8 = key_index(&map, "referrer");
-        int index_11 = key_index(&map, "version");
+        int index_3 = key_index(&map, "app_link");
+        int index_4 = key_index(&map, "app_method");
+        int index_5 = key_index(&map, "referrer");
+        int index_6 = key_index(&map, "version");
 
-        if (index_0 >= 0 && index_1 >= 0 && index_2 >= 0 && index_6
-                >= 0 && index_7 >= 0 && index_8 >= 0 && index_11 >= 0)
+        if (index_0 >= 0 && index_1 >= 0 && index_2 >= 0 && index_3
+                >= 0 && index_4 >= 0 && index_5 >= 0 && index_6 >= 0)
         {
             // All values to be inserted into the database
-            char * values[12];
+            char * values[10];
 
-            // Get current date
-            time_t cur_time = time(NULL);
-            struct tm *cur_time_gm = gmtime(&cur_time);
-            char date[100] = {0};
-            strftime(date, 99, "%a, %d %b %Y %H:%M:%S %Z", cur_time_gm);
-
-            // Set default values
-            values[3] = date;
-            values[4] = "Pending";
-            values[5] = "Applied";
-            values[9] = "None";
-            values[10] = date;
-
-            // Set from required fields
-            values[0] = map.values[index_0];
-            values[1] = map.values[index_1];
-            values[2] = map.values[index_2];
-            values[6] = map.values[index_6];
-            values[7] = map.values[index_7];
-            values[8] = map.values[index_8];
-            values[11] = map.values[index_11];
+            values[0] = map.values[index_0]; // Company
+            values[1] = map.values[index_1]; // Position
+            values[2] = map.values[index_2]; // Location
+            values[3] = map.values[index_3]; // App Link
+            values[4] = map.values[index_4]; // Apply Method
+            values[5] = map.values[index_5]; // Referrer
+            values[6] = map.values[index_6]; // Resume Version
+            values[7] = "Pending"; // Status
+            values[8] = "Applied"; // Progress
+            values[9] = "None"; // Interview Details
 
             // Turn body into a SQL query
-            int stmt_len = 27; // "INSERT INTO jobs VALUES (" and ");"
-            stmt_len += 2 * 11; // ", " 11 times
-            stmt_len += 2 * 12; // quotes 12 times
-            for (int i = 0; i < 12; i++)
+            char * template_query = "INSERT INTO jobs (company, "
+                "position, location, app_link, apply_method, "
+                "referrer, resume_version, status, progress, "
+                "interview_details) VALUES (\"%s\", \"%s\", \"%s\", "
+                "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
+                "\"%s\");";
+            int stmt_len = strlen(template_query);
+            for (int i = 0; i < 10; i++)
             {
-                stmt_len += strlen(values[i]);
+                stmt_len += strlen(values[i]) - 2;
             }
 
             char *statement = malloc(stmt_len + 1);
-            sprintf(statement, "INSERT INTO jobs VALUES (\"%s\", \"%s\", "
-                "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
-                "\"%s\", \"%s\", \"%s\");", values[0], values[1],
+            sprintf(statement, template_query, values[0], values[1],
                 values[2], values[3], values[4], values[5], values[6],
-                values[7], values[8], values[9], values[10],
-                values[11]);
+                values[7], values[8], values[9]);
             statement[stmt_len] = '\0';
 
             result.data = statement;

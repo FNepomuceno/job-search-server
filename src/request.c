@@ -246,13 +246,33 @@ web_action interpret_request(http_request * req)
     if (strcmp(req->method, "GET") == 0
             && strncmp(req->uri, "/jobs", 4) == 0)
     {
-        // No extra queries case: get all columns from 'jobs' table
-        // Make sure nothing follows "/jobs" in URI TODO
-        result.data = "SELECT * FROM jobs;";
-        result.data_type = ACTION_SQL_QUERY;
-        result.http_code = 200;
+        char *remainder = req->uri + 5;
+        if (strlen(remainder) == 0)
+        {
+            printf("No remainder\n");
+            result.data = "SELECT * FROM jobs;";
+            result.data_type = ACTION_SQL_QUERY;
+            result.http_code = 200;
+        }
+        else
+        {
+            query_map map = decode_query(remainder);
 
-        // Handle other query cases TODO
+            // Valid query values. implement TODO
+            // "updated-after"
+            // "updated-before"
+            // "filter-by"
+            // "order-by"
+            // "order-direction"
+
+            // Handle other query cases TODO
+            printf("Remainder:\n%s\n", remainder);
+            result.data = "SELECT * FROM jobs;";
+            result.data_type = ACTION_SQL_QUERY;
+            result.http_code = 200;
+
+            clear_query_map(&map);
+        }
     }
 
     // "POST /jobs/new" (api)

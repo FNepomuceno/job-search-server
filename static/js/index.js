@@ -13,7 +13,7 @@ function handle_response() {
     // Add link to "progress" TODO
     // Add link to "interview details" TODO
 
-    // Clear out table TODO
+    // Clear out table
     let table = document.getElementById("jobs_table");
     while (table.rows.length > 1) { table.deleteRow(1); }
 

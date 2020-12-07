@@ -1,11 +1,20 @@
 async function refresh_jobs() {
     let rows = JSON.parse(await http_get('jobs', {})).result;
 
-    // Modify fields as needed
-    // Change "app link" to link TODO
-    // Add link to "status" TODO
-    // Add link to "progress" TODO
-    // Add link to "interview details" TODO
+    rows.forEach((row) => {
+        // Change "app link" to link
+        let app_link = document.createElement('a');
+        app_link.href = row['app_link'];
+        app_link.innerHTML = 'Link';
+        row['app_link'] = app_link;
+
+        // Change interview details to edit
+        let edit_link = document.createElement('a');
+        // Come up with a URL scheme TODO
+        edit_link.href = `/edit/${'not_ready_yet'}`;
+        edit_link.innerHTML = 'Edit';
+        row['interview_details'] = edit_link;
+    });
 
     // Clear out table
     let table = document.getElementById("jobs_table");
@@ -17,7 +26,10 @@ async function refresh_jobs() {
             let new_row = table.insertRow();
             for (let value of Object.values(row)) {
                 let new_cell = new_row.insertCell();
-                new_cell.innerHTML = value;
+                if (typeof value == "string") {
+                    value = document.createTextNode(value);
+                }
+                new_cell.appendChild(value);
             }
         }
     } else {
@@ -38,7 +50,6 @@ async function refresh_jobs() {
     };
     let date_string = (new Date()).toLocaleDateString("en-US", options);
     update_text.innerHTML = `Last updated: ${date_string}`;
-    console.log(update_text);
 }
 
 window.onload = async function() {

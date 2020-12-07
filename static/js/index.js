@@ -1,11 +1,5 @@
-let request_button = document.getElementById("job_request");
-
-function handle_response() {
-    let request = this;
-    if (request.status != 200) { return; }
-
-    let json_response = JSON.parse(request.responseText);
-    let rows = json_response.result;
+async function refresh_jobs() {
+    let rows = JSON.parse(await http_get('jobs', {})).result;
 
     // Modify fields as needed
     // Change "app link" to link TODO
@@ -34,21 +28,9 @@ function handle_response() {
     }
 }
 
-function refresh_jobs() {
-    let httpRequest = new XMLHttpRequest();
-    httpRequest.open('GET', 'jobs');
-    httpRequest.onload = handle_response;
-    httpRequest.send();
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 window.onload = async function() {
     while (true) {
-        refresh_jobs();
+        await refresh_jobs();
         await sleep(60 * 1000);
-        break;
     }
 };

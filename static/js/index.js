@@ -26,6 +26,19 @@ async function refresh_jobs() {
         new_cell.innerHTML = "No applications found";
         new_cell.colSpan = 12;
     }
+
+    // Update "last updated" text
+    let update_text = document.getElementById("last_updated");
+    let options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    };
+    let date_string = (new Date()).toLocaleDateString("en-US", options);
+    update_text.innerHTML = `Last updated: ${date_string}`;
+    console.log(update_text);
 }
 
 window.onload = async function() {

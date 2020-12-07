@@ -19,32 +19,29 @@ div#content {
     padding: 2em 1em;
 }
 
-div#container {
+div#content {
     display: flex;
-    flex-direction:column;
-    align-items:center;
+    flex-direction: column;
+    align-items: center;
     max-width: 100em;
 }
 
-table {
-    table-layout: fixed;
-    width: 100%;
-    margin: 1em;
-}
-
-table, th, td {
+div#content > div {
+    display: flex;
+    flex-direction: column;
     background-color: #FFD066;
 	border: 1px solid black;
+    padding: 1em;
+    margin: 0.5em;
+    align-items: center;
+}
+
+div#content > div > h6 {
+    margin: 1em 0 0 0;
 }
 
 td {
 	text-align: center;
-}
-
-form {
-    background-color: #FFD066;
-	border: 1px solid black;
-    padding: 1em;
 }
 
 form h3 {

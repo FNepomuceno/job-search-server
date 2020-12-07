@@ -10,54 +10,65 @@
     <h1>Job Hunt</h1>
 </div>
 <div id="content">
-<div id="container">
-    <table id="jobs_table">
-        <tr>
-            <th>Company</th>
-            <th>Position</th>
-            <th>Location</th>
-            <th>Date Applied</th>
-            <th>Status</th>
-            <th>Progress</th>
-            <th>Job App Link</th>
-            <th>Apply Method</th>
-            <th>Referrer</th>
-            <th>Interview Details</th>
-            <th>Last Updated</th>
-            <th>Resume Version</th>
-        </tr>
-        <tr>
-            <td colspan="12">No applications found</td>
-        </tr>
-    </table>
-
-    <form action="/jobs/new", method="POST">
-        <h3>Add application</h3>
-        <label for="company">Company:</label><br />
-        <input type="text" id="company" name="company" value="" /><br />
-
-        <label for="position">Position:</label><br />
-        <input type="text" id="position" name="position" value="" /><br />
-
-        <label for="location">Location:</label><br />
-        <input type="text" id="location" name="location" value="" /><br />
-
-        <label for="app_link">Application Link:</label><br />
-        <input type="text" id="app_link" name="app_link" value="" /><br />
-
-        <label for="app_method">Application Method:</label><br />
-        <input type="text" id="app_method" name="app_method" value="" />
+    <div>
+        <table id="jobs_table">
+            <tr>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Location</th>
+                <th>Date Applied</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Job App Link</th>
+                <th>Apply Method</th>
+                <th>Referrer</th>
+                <th>Interview Details</th>
+                <th>Last Updated</th>
+                <th>Resume Version</th>
+            </tr>
+            <tr>
+                <td colspan="12">No applications found</td>
+            </tr>
+        </table>
         <br />
+        <h6 id="last_updated"></h6>
+    </div>
 
-        <label for="referrer">Referrer:</label><br />
-        <input type="text" id="referrer" name="referrer" value="" /><br />
+    <div>
+        <form action="/jobs/new", method="POST">
+            <h3>Add application</h3>
+            <label for="company">Company:</label><br />
+            <input type="text" id="company" name="company" value="" />
+            <br />
 
-        <label for="version">Resume Version:</label><br />
-        <input type="text" id="version" name="version" value="" /><br />
+            <label for="position">Position:</label><br />
+            <input type="text" id="position" name="position" value="" />
+            <br />
 
-        <input type="submit" value="Submit" />
-    </form>
-</div>
+            <label for="location">Location:</label><br />
+            <input type="text" id="location" name="location" value="" />
+            <br />
+
+            <label for="app_link">Application Link:</label><br />
+            <input type="text" id="app_link" name="app_link" value="" />
+            <br />
+
+            <label for="app_method">Application Method:</label><br />
+            <input type="text" id="app_method" name="app_method"
+                value="" />
+            <br />
+
+            <label for="referrer">Referrer:</label><br />
+            <input type="text" id="referrer" name="referrer" value="" />
+            <br />
+
+            <label for="version">Resume Version:</label><br />
+            <input type="text" id="version" name="version" value="" />
+            <br />
+
+            <input type="submit" value="Submit" />
+        </form>
+    </div>
 </div>
 <script src="/static/js/request.js"></script>
 <script src="/static/js/index.js"></script>

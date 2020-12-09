@@ -247,36 +247,74 @@ web_action interpret_request(http_request * req)
             && strncmp(req->uri, "/jobs", 4) == 0)
     {
         char *remainder = req->uri + 5;
-        if (strlen(remainder) == 0)
+        query_map map = decode_query(remainder);
+        int qindex = 0;
+        int query_length = 0;
+        char * qvalues[30];
+
+        // Base query
+        qvalues[0] = "SELECT * FROM jobs";
+        query_length += 18;
+        ++qindex;
+
+        // "updated-after"
+        int ua_index = key_index(&map, "updated-after");
+        if (ua_index >= 0)
         {
-            printf("No remainder\n");
-            result.data = "SELECT * FROM jobs;";
-            result.data_type = ACTION_SQL_QUERY;
-            result.http_code = 200;
+            // Always first so only add " where "
+            qvalues[qindex] = " WHERE latest_update >= \"";
+            qvalues[qindex+1] = map.values[ua_index];
+            qvalues[qindex+2] = "\"";
+            query_length += 26 + strlen(map.values[ua_index]);
+            qindex += 3;
         }
-        else
+
+        // "updated-before"
+        int ub_index = key_index(&map, "updated-before");
+        if (ub_index >= 0)
         {
-            query_map map = decode_query(remainder);
-
-            // Valid query values. implement TODO
-            // "updated-after"
-            // "updated-before"
-            // "filter-by"
-            // "order-by"
-            // "order-direction"
-
-            // Handle other query cases TODO
-            printf("Remainder:\n");
-            for (int i = 0; i < map.size; i++)
+            // Need to check if is first or not
+            if (qindex == 1)
             {
-                printf("%s: %s\n", map.keys[i], map.values[i]);
+                qvalues[qindex] = " WHERE ";
+                query_length += 7;
             }
-            result.data = "SELECT * FROM jobs;";
-            result.data_type = ACTION_SQL_QUERY;
-            result.http_code = 200;
-
-            clear_query_map(&map);
+            else
+            {
+                qvalues[qindex] = " AND ";
+                query_length += 5;
+            }
+            qvalues[qindex+1] = "latest_update <= \"";
+            qvalues[qindex+2] = map.values[ub_index];
+            qvalues[qindex+3] = "\"";
+            query_length += 19 + strlen(map.values[ub_index]);
+            qindex += 4;
         }
+
+        // These query values do not filter, but change the ordering
+        // implement ordering TODO
+        // "order-direction"
+        // "order-by"
+
+        // Set up query string
+        char * query = malloc(query_length + 10);
+        char * q_cursor = query;
+        for (int i = 0; i < qindex; i++)
+        {
+            int len = strlen(qvalues[i]);
+            memcpy(q_cursor, qvalues[i], len);
+            q_cursor += len;
+        }
+        strcpy(q_cursor, ";");
+
+        // Finalize request
+        result.data = query;
+        result.data_type = ACTION_SQL_QUERY;
+        result.http_code = 200;
+        result.clean_data = true;
+
+        // Clean up
+        clear_query_map(&map);
     }
 
     // "POST /jobs/new" (api)

@@ -42,6 +42,10 @@ query_map decode_query(char * query_string)
     {
         return result;
     }
+    else if (*query_string == '?')
+    {
+        ++query_string;
+    }
 
     // Get key/value pairs
     char * cur_pair = query_string;

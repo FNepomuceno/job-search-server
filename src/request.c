@@ -266,7 +266,11 @@ web_action interpret_request(http_request * req)
             // "order-direction"
 
             // Handle other query cases TODO
-            printf("Remainder:\n%s\n", remainder);
+            printf("Remainder:\n");
+            for (int i = 0; i < map.size; i++)
+            {
+                printf("%s: %s\n", map.keys[i], map.values[i]);
+            }
             result.data = "SELECT * FROM jobs;";
             result.data_type = ACTION_SQL_QUERY;
             result.http_code = 200;

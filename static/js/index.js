@@ -1,5 +1,5 @@
 async function refresh_jobs() {
-    let rows = JSON.parse(await http_get('jobs', {})).result;
+    let rows = JSON.parse(await http_get('/api/jobs', {})).result;
 
     rows.forEach((row) => {
         // Change "app link" to link
@@ -10,8 +10,8 @@ async function refresh_jobs() {
 
         // Change interview details to edit
         let edit_link = document.createElement('a');
-        // Come up with a URL scheme TODO
-        edit_link.href = `/edit/${'not_ready_yet'}`;
+        let row_id = row['date_applied'].split(/[-: ]/).join('-');
+        edit_link.href = `/jobs/${row_id}`;
         edit_link.innerHTML = 'Edit';
         row['interview_details'] = edit_link;
     });

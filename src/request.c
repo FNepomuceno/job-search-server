@@ -242,11 +242,31 @@ web_action interpret_request(http_request * req)
         result.clean_data = true;
     }
 
-    // "GET /jobs" (api)
+    // "GET /jobs/{job_id}"
     if (strcmp(req->method, "GET") == 0
-            && strncmp(req->uri, "/jobs", 4) == 0)
+            && strncmp(req->uri, "/jobs/", 6) == 0)
     {
-        char *remainder = req->uri + 5;
+        char * url_end = strstr(req->uri+6, "/");
+        if (url_end == NULL) { url_end = strstr(req->uri+6, "?"); }
+        if (url_end == NULL) { url_end = req->uri+strlen(req->uri); }
+
+        int length = url_end - (req->uri+6);
+        char * job_id = malloc(length+1);
+        memcpy(job_id, req->uri+6, length);
+        job_id[length] = '\0';
+
+        // Do something with job_id TODO
+        printf("\"%s\" not available yet\n", job_id);
+
+        // Cleanup
+        free(job_id);
+    }
+
+    // "GET /api/jobs"
+    if (strcmp(req->method, "GET") == 0
+            && strncmp(req->uri, "/api/jobs", 4) == 0)
+    {
+        char *remainder = req->uri + 9;
         query_map map = decode_query(remainder);
         int qindex = 0;
         int query_length = 0;
@@ -317,9 +337,9 @@ web_action interpret_request(http_request * req)
         clear_query_map(&map);
     }
 
-    // "POST /jobs/new" (api)
+    // "POST /api/jobs"
     if (strcmp(req->method, "POST") == 0
-            && strcmp(req->uri, "/jobs/new") == 0)
+            && strcmp(req->uri, "/api/jobs") == 0)
     {
         // Parse body
         query_map map = decode_query(req->body);

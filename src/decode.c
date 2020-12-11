@@ -15,7 +15,7 @@ void clear_query_map(query_map * map)
     free(map->values);
 }
 
-int key_index(query_map * map, char * key)
+int key_index_query(query_map * map, char * key)
 {
     for (int i = 0; i < map->size; i++)
     {

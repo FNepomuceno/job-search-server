@@ -258,6 +258,11 @@ web_action interpret_request(http_request * req)
         // Do something with job_id TODO
         printf("\"%s\" not available yet\n", job_id);
 
+        // Finalize request
+        result.data = "static/html/jobs_detail.html";
+        result.data_type = ACTION_FILE_PATH;
+        result.http_code = 200;
+
         // Cleanup
         free(job_id);
     }

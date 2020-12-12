@@ -272,7 +272,7 @@ web_action interpret_request(http_request * req)
             && strncmp(req->uri, "/api/jobs", 4) == 0)
     {
         char *remainder = req->uri + 9;
-        val_map map = decode_query(remainder);
+        val_map map = query_to_map(remainder);
         int qindex = 0;
         int query_length = 0;
         char * qvalues[30];
@@ -347,7 +347,7 @@ web_action interpret_request(http_request * req)
             && strcmp(req->uri, "/api/jobs") == 0)
     {
         // Parse body
-        val_map map = decode_query(req->body);
+        val_map map = query_to_map(req->body);
 
         // Get required fields and their indices
         int index_0 = map_key_index(&map, "company");

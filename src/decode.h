@@ -3,6 +3,6 @@
 
 #include "valmap.h"
 
-val_map decode_query(char * query_string);
+val_map query_to_map(char * query_string);
 
 #endif

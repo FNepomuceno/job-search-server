@@ -7,8 +7,7 @@
 
 // Add map_to_query function TODO
 
-// Rename to query_to_map TODO
-val_map decode_query(char * query_string)
+val_map query_to_map(char * query_string)
 {
     val_map result = new_map();
 

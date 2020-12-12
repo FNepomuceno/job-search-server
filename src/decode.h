@@ -1,12 +1,9 @@
 #ifndef DECODE_H
 #define DECODE_H
 
-typedef struct query_map {
-    int capacity;
-    int size;
-    char ** keys;
-    char ** values;
-} query_map;
+#include "valmap.h"
+
+typedef val_map query_map;
 
 void clear_query_map(query_map * map);
 int key_index_query(query_map * map, char * key);

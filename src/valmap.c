@@ -40,9 +40,10 @@ val_map new_map(void)
     return result;
 }
 
-void insert_entry(val_map * map, char * key, int key_len, char * value,
-    int value_len)
+void insert_entry(val_map * map, char * key, long key_len, char * value,
+    long value_len)
 {
+    /*
     int key_index = map_key_index(map, key);
 
     // Update value if key exists
@@ -53,6 +54,7 @@ void insert_entry(val_map * map, char * key, int key_len, char * value,
         strcpy(map->values[key_index], value);
         return;
     }
+    */
 
     // Increase capacity if needed
     if (map->size >= map->capacity)

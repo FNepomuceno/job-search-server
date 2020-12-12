@@ -1,5 +1,5 @@
-#ifndef DECODE_H
-#define DECODE_H
+#ifndef QUERY_H
+#define QUERY_H
 
 #include "valmap.h"
 

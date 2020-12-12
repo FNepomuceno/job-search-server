@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Move decode.* to query.* TODO
-#include "decode.h"
-
-// Add map_to_query function TODO
+#include "query.h"
 
 val_map query_to_map(char * query_string)
 {

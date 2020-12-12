@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #include "request.h"
-#include "decode.h"
+#include "query.h"
 
 void clean_http_request(http_request * req)
 {
@@ -193,6 +193,7 @@ void clean_web_action(web_action * action)
     }
 }
 
+// Refactor each request to own function? TODO
 web_action interpret_request(http_request * req)
 {
     web_action result;

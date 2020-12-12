@@ -272,7 +272,7 @@ web_action interpret_request(http_request * req)
             && strncmp(req->uri, "/api/jobs", 4) == 0)
     {
         char *remainder = req->uri + 9;
-        query_map map = decode_query(remainder);
+        val_map map = decode_query(remainder);
         int qindex = 0;
         int query_length = 0;
         char * qvalues[30];
@@ -283,7 +283,7 @@ web_action interpret_request(http_request * req)
         ++qindex;
 
         // "updated-after"
-        int ua_index = key_index_query(&map, "updated-after");
+        int ua_index = map_key_index(&map, "updated-after");
         if (ua_index >= 0)
         {
             // Always first so only add " where "
@@ -295,7 +295,7 @@ web_action interpret_request(http_request * req)
         }
 
         // "updated-before"
-        int ub_index = key_index_query(&map, "updated-before");
+        int ub_index = map_key_index(&map, "updated-before");
         if (ub_index >= 0)
         {
             // Need to check if is first or not
@@ -339,7 +339,7 @@ web_action interpret_request(http_request * req)
         result.clean_data = true;
 
         // Clean up
-        clear_query_map(&map);
+        clear_val_map(&map);
     }
 
     // "POST /api/jobs"
@@ -347,16 +347,16 @@ web_action interpret_request(http_request * req)
             && strcmp(req->uri, "/api/jobs") == 0)
     {
         // Parse body
-        query_map map = decode_query(req->body);
+        val_map map = decode_query(req->body);
 
         // Get required fields and their indices
-        int index_0 = key_index_query(&map, "company");
-        int index_1 = key_index_query(&map, "position");
-        int index_2 = key_index_query(&map, "location");
-        int index_3 = key_index_query(&map, "app_link");
-        int index_4 = key_index_query(&map, "app_method");
-        int index_5 = key_index_query(&map, "referrer");
-        int index_6 = key_index_query(&map, "version");
+        int index_0 = map_key_index(&map, "company");
+        int index_1 = map_key_index(&map, "position");
+        int index_2 = map_key_index(&map, "location");
+        int index_3 = map_key_index(&map, "app_link");
+        int index_4 = map_key_index(&map, "app_method");
+        int index_5 = map_key_index(&map, "referrer");
+        int index_6 = map_key_index(&map, "version");
 
         if (index_0 >= 0 && index_1 >= 0 && index_2 >= 0 && index_3
                 >= 0 && index_4 >= 0 && index_5 >= 0 && index_6 >= 0)
@@ -409,7 +409,7 @@ web_action interpret_request(http_request * req)
         }
 
         // Cleanup
-        clear_query_map(&map);
+        clear_val_map(&map);
     }
 
     return result;

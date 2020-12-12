@@ -1,21 +1,16 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
+// Move decode.* to query.* TODO
 #include "decode.h"
 
-void clear_query_map(query_map * map)
-{
-    clear_val_map(map);
-}
+// Add map_to_query function TODO
 
-int key_index_query(query_map * map, char * key)
+// Rename to query_to_map TODO
+val_map decode_query(char * query_string)
 {
-    return map_key_index(map, key);
-}
-
-query_map decode_query(char * query_string)
-{
-    query_map result = new_map();
+    val_map result = new_map();
 
     if (*query_string == '\0') { return result; }
     else if (*query_string == '?') { ++query_string; }

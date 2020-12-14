@@ -5,8 +5,9 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "request.h"
 #include "query.h"
+#include "request.h"
+#include "valmap.h"
 
 void clean_http_request(http_request * req)
 {
@@ -193,6 +194,55 @@ void clean_web_action(web_action * action)
     }
 }
 
+val_map * match_uri(char * met, char * temp, http_request * req)
+{
+    val_map * result = malloc(sizeof (val_map));
+
+    // URL will be parsed between slashes and possibly '?' at the end
+    // Template should only have slashes in them and not '?'s
+    char * start = strstr(req->uri, "/");
+    char * end = strstr(start+1, "/");
+    while (end != NULL)
+    {
+        // Get copy of section
+        long len = end - start - 1;
+        char * section = malloc(len+1);
+        memcpy(section, start+1, len);
+        section[len] = '\0';
+
+        // Do something with section TODO
+        printf("%s\n", section);
+
+        // Cleanup
+        free(section);
+
+        // Move to end section
+        start = end;
+        end = strstr(end+1, "/");
+    }
+    if (start != NULL)
+    {
+        end = strstr(start, "?");
+        if (end == NULL) { end = start + strlen(start); }
+
+        // Get copy of section
+        long len = end - start - 1;
+        char * section = malloc(len+1);
+        memcpy(section, start+1, len);
+        section[len] = '\0';
+
+        // Do something with section TODO
+        printf("%s\n", section);
+
+        // Cleanup
+        free(section);
+    }
+
+    free(result);
+
+    return NULL;
+}
+
 // Refactor each request to own function? TODO
 web_action interpret_request(http_request * req)
 {
@@ -202,6 +252,9 @@ web_action interpret_request(http_request * req)
     result.data_type = ACTION_FILE_PATH;
     result.http_code = 404;
     result.clean_data = false;
+
+    // Test function call TODO remove
+    match_uri("GET", "/jobs/{job_id}", req);
 
     // Malformed request
     if (!req->is_successful) {

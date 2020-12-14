@@ -16,9 +16,9 @@ void clear_val_list(val_list * list)
 
 int list_find(val_list * list, char * value)
 {
-    for (int i = 0; i < map->size; ++i)
+    for (int i = 0; i < list->size; ++i)
     {
-        if (strcmp(map->values[i], value) == 0)
+        if (strcmp(list->values[i], value) == 0)
         {
             return i;
         }

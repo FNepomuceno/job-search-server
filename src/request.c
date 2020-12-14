@@ -197,24 +197,55 @@ void clean_web_action(web_action * action)
 val_map * match_uri(char * met, char * temp, url_detail * req_detail)
 {
     val_map * result = malloc(sizeof (val_map));
+    *result = new_map();
 
+    // Template rules:
+    // - No queries are allowed in the template
+    // - Each section of path has a string to match or a variable
+    // - Variables are indicated with {}s enclosing its name
+    // - Paths can end in * to allow sub-paths
+    //   - This sub-path can be found in the variable "*" of the result
+    //   - Template paths that don't end in * require the request's url
+    //     to match in size with the template's path size
+    // - The following code assumes the template follows these rules
     url_detail temp_detail = req_to_detail(met, temp);
 
-    for (int i = 0; i < req_detail->url.size; ++i)
+    if (temp_detail.url.size > req_detail->url.size)
     {
-        printf("%s\n", req_detail->url.values[i]);
+        clear_url_detail(&temp_detail);
+        clear_val_map(result);
+        free(result);
+        return NULL;
     }
 
-    for (int i = 0; i < req_detail->query.size; ++i)
+    for (int i = 0; i < temp_detail.url.size; i++)
     {
-        printf("%s: %s\n", req_detail->query.keys[i],
-            req_detail->query.values[i]);
+        char * temp_sec = temp_detail.url.values[i];
+        char * req_sec = req_detail->url.values[i];
+        // Check for variables
+        if (temp_sec[0] == '{')
+        {
+            insert_entry(result, temp_sec+1, strlen(temp_sec)-2,
+                req_sec, strlen(req_sec));
+        }
+        else if (strcmp(temp_sec, "*") == 0)
+        {
+            // Compute sub path and put it in result TODO
+            break;
+        }
+        else if (strcmp(temp_sec, req_sec) != 0)
+        {
+            clear_url_detail(&temp_detail);
+            clear_val_map(result);
+            free(result);
+            return NULL;
+        }
     }
 
+    // Cleanup
     clear_url_detail(&temp_detail);
-    free(result);
 
-    return NULL;
+    return result;
 }
 
 // Refactor each request to own function? TODO
@@ -230,7 +261,16 @@ web_action interpret_request(http_request * req)
     url_detail req_detail = req_to_detail(req->method, req->uri);
 
     // Test function call TODO remove
-    match_uri("GET", "/jobs/{job_id}", &req_detail);
+    val_map * match = match_uri("GET", "/jobs/{job_id}", &req_detail);
+    if (match != NULL)
+    {
+        for (int i = 0; i < match->size; i++)
+        {
+            printf("%s: %s\n", match->keys[i], match->values[i]);
+        }
+        clear_val_map(match);
+        free(match);
+    }
 
     // Malformed request
     if (!req->is_successful) {

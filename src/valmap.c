@@ -13,6 +13,7 @@ void clear_val_map(val_map * map)
     }
     free(map->keys);
     free(map->values);
+    map->size = 0;
 }
 
 int map_key_index(val_map * map, char * key)
@@ -43,7 +44,7 @@ val_map new_map(void)
 void insert_entry(val_map * map, char * key, long key_len, char * value,
     long value_len)
 {
-    /*
+    /* Add this back in TODO
     int key_index = map_key_index(map, key);
 
     // Update value if key exists

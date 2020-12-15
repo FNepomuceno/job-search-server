@@ -270,7 +270,12 @@ web_action interpret_request(http_request * req)
     url_detail req_detail = req_to_detail(req->method, req->uri);
 
     web_route routes[] = {
-        { "GET", "/", web_index }
+        { "GET", "/favicon.ico", web_favicon },
+        { "GET", "/", web_index },
+        // { "GET",  "/static/*", web_static },
+        { "GET", "/jobs/{job_id}", web_jobs_detail },
+        { "GET", "/api/jobs", web_jobs_get },
+        { "POST", "/api/jobs", web_jobs_post }
     };
 
     long num_routes = sizeof (routes) / sizeof (web_route);
@@ -279,7 +284,8 @@ web_action interpret_request(http_request * req)
     {
         match = match_uri(routes[i].method, routes[i].path, &req_detail);
         if (match != NULL) {
-            web_action result = routes[i].handler(match);
+            web_action result =
+                routes[i].handler(match, &req_detail.query, req->body);
 
             // Cleanup
             clear_val_map(match);
@@ -290,17 +296,7 @@ web_action interpret_request(http_request * req)
         }
     }
 
-    // Migrate routes to routes module TODO
-
-    // "GET /favicon.ico" (icon)
-    if (strcmp(req->method, "GET") == 0
-            && strcmp(req->uri, "/favicon.ico") == 0)
-    {
-        result.data = "favicon.ico";
-        result.data_type = ACTION_FILE_PATH;
-        result.http_code = 200;
-    }
-
+    // Migrate static files route to routes module TODO
     // "GET /static/*" (static files)
     if (strcmp(req->method, "GET") == 0
             && strncmp(req->uri, "/static/", 8) == 0)
@@ -314,176 +310,6 @@ web_action interpret_request(http_request * req)
         result.data_type = ACTION_FILE_PATH;
         result.http_code = 200;
         result.clean_data = true;
-    }
-
-    // "GET /jobs/{job_id}"
-    if (strcmp(req->method, "GET") == 0
-            && strncmp(req->uri, "/jobs/", 6) == 0)
-    {
-        char * url_end = strstr(req->uri+6, "/");
-        if (url_end == NULL) { url_end = strstr(req->uri+6, "?"); }
-        if (url_end == NULL) { url_end = req->uri+strlen(req->uri); }
-
-        int length = url_end - (req->uri+6);
-        char * job_id = malloc(length+1);
-        memcpy(job_id, req->uri+6, length);
-        job_id[length] = '\0';
-
-        // Do something with job_id TODO
-        printf("\"%s\" not available yet\n", job_id);
-
-        // Finalize request
-        result.data = "static/html/jobs_detail.html";
-        result.data_type = ACTION_FILE_PATH;
-        result.http_code = 200;
-
-        // Cleanup
-        free(job_id);
-    }
-
-    // "GET /api/jobs"
-    if (strcmp(req->method, "GET") == 0
-            && strncmp(req->uri, "/api/jobs", 4) == 0)
-    {
-        char *remainder = req->uri + 9;
-        val_map map = query_to_map(remainder);
-        int qindex = 0;
-        int query_length = 0;
-        char * qvalues[30];
-
-        // Base query
-        qvalues[0] = "SELECT * FROM jobs";
-        query_length += 18;
-        ++qindex;
-
-        // "updated-after"
-        int ua_index = map_key_index(&map, "updated-after");
-        if (ua_index >= 0)
-        {
-            // Always first so only add " where "
-            qvalues[qindex] = " WHERE latest_update >= \"";
-            qvalues[qindex+1] = map.values[ua_index];
-            qvalues[qindex+2] = "\"";
-            query_length += 26 + strlen(map.values[ua_index]);
-            qindex += 3;
-        }
-
-        // "updated-before"
-        int ub_index = map_key_index(&map, "updated-before");
-        if (ub_index >= 0)
-        {
-            // Need to check if is first or not
-            if (qindex == 1)
-            {
-                qvalues[qindex] = " WHERE ";
-                query_length += 7;
-            }
-            else
-            {
-                qvalues[qindex] = " AND ";
-                query_length += 5;
-            }
-            qvalues[qindex+1] = "latest_update <= \"";
-            qvalues[qindex+2] = map.values[ub_index];
-            qvalues[qindex+3] = "\"";
-            query_length += 19 + strlen(map.values[ub_index]);
-            qindex += 4;
-        }
-
-        // These query values do not filter, but change the ordering
-        // implement ordering TODO
-        // "order-direction"
-        // "order-by"
-
-        // Set up query string
-        char * query = malloc(query_length + 10);
-        char * q_cursor = query;
-        for (int i = 0; i < qindex; i++)
-        {
-            int len = strlen(qvalues[i]);
-            memcpy(q_cursor, qvalues[i], len);
-            q_cursor += len;
-        }
-        strcpy(q_cursor, ";");
-
-        // Finalize request
-        result.data = query;
-        result.data_type = ACTION_SQL_QUERY;
-        result.http_code = 200;
-        result.clean_data = true;
-
-        // Clean up
-        clear_val_map(&map);
-    }
-
-    // "POST /api/jobs"
-    if (strcmp(req->method, "POST") == 0
-            && strcmp(req->uri, "/api/jobs") == 0)
-    {
-        // Parse body
-        val_map map = query_to_map(req->body);
-
-        // Get required fields and their indices
-        int index_0 = map_key_index(&map, "company");
-        int index_1 = map_key_index(&map, "position");
-        int index_2 = map_key_index(&map, "location");
-        int index_3 = map_key_index(&map, "app_link");
-        int index_4 = map_key_index(&map, "app_method");
-        int index_5 = map_key_index(&map, "referrer");
-        int index_6 = map_key_index(&map, "version");
-
-        if (index_0 >= 0 && index_1 >= 0 && index_2 >= 0 && index_3
-                >= 0 && index_4 >= 0 && index_5 >= 0 && index_6 >= 0)
-        {
-            // All values to be inserted into the database
-            char * values[10];
-
-            values[0] = map.values[index_0]; // Company
-            values[1] = map.values[index_1]; // Position
-            values[2] = map.values[index_2]; // Location
-            values[3] = map.values[index_3]; // App Link
-            values[4] = map.values[index_4]; // Apply Method
-            values[5] = map.values[index_5]; // Referrer
-            values[6] = map.values[index_6]; // Resume Version
-            values[7] = "Pending"; // Status
-            values[8] = "Applied"; // Progress
-            values[9] = "None"; // Interview Details
-
-            // Turn body into a SQL query
-            char * template_query = "INSERT INTO jobs (company, "
-                "position, location, app_link, apply_method, "
-                "referrer, resume_version, status, progress, "
-                "interview_details) VALUES (\"%s\", \"%s\", \"%s\", "
-                "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
-                "\"%s\");";
-            int stmt_len = strlen(template_query);
-            for (int i = 0; i < 10; i++)
-            {
-                stmt_len += strlen(values[i]) - 2;
-            }
-
-            char *statement = malloc(stmt_len + 1);
-            sprintf(statement, template_query, values[0], values[1],
-                values[2], values[3], values[4], values[5], values[6],
-                values[7], values[8], values[9]);
-            statement[stmt_len] = '\0';
-
-            result.data = statement;
-            result.redirect_uri = "/";
-            result.data_type = ACTION_SQL_QUERY;
-            result.http_code = 303;
-            result.clean_data = true;
-        }
-        else
-        {
-            // Malformed Request
-            result.data = "Some required fields are missing";
-            result.data_type = ACTION_RAW_TEXT;
-            result.http_code = 400;
-        }
-
-        // Cleanup
-        clear_val_map(&map);
     }
 
     // Cleanup

@@ -7,6 +7,7 @@
 
 #include "query.h"
 #include "request.h"
+#include "route.h"
 #include "valmap.h"
 
 void clean_http_request(http_request * req)
@@ -210,7 +211,8 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
     // - The following code assumes the template follows these rules
     url_detail temp_detail = req_to_detail(met, temp);
 
-    if (temp_detail.url.size > req_detail->url.size)
+    if (strcmp(met, req_detail->method) != 0 ||
+        temp_detail.url.size > req_detail->url.size)
     {
         clear_url_detail(&temp_detail);
         clear_val_map(result);
@@ -248,7 +250,6 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
     return result;
 }
 
-// Refactor each request to own function? TODO
 web_action interpret_request(http_request * req)
 {
     web_action result;
@@ -258,20 +259,6 @@ web_action interpret_request(http_request * req)
     result.http_code = 404;
     result.clean_data = false;
 
-    url_detail req_detail = req_to_detail(req->method, req->uri);
-
-    // Test function call TODO remove
-    val_map * match = match_uri("GET", "/jobs/{job_id}", &req_detail);
-    if (match != NULL)
-    {
-        for (int i = 0; i < match->size; i++)
-        {
-            printf("%s: %s\n", match->keys[i], match->values[i]);
-        }
-        clear_val_map(match);
-        free(match);
-    }
-
     // Malformed request
     if (!req->is_successful) {
         result.data = "Something horribly wrong happened";
@@ -280,19 +267,36 @@ web_action interpret_request(http_request * req)
         return result;
     }
 
+    url_detail req_detail = req_to_detail(req->method, req->uri);
+
+    web_route routes[] = {
+        { "GET", "/", web_index }
+    };
+
+    long num_routes = sizeof (routes) / sizeof (web_route);
+    val_map * match = NULL;
+    for (int i = 0; i < num_routes; i++)
+    {
+        match = match_uri(routes[i].method, routes[i].path, &req_detail);
+        if (match != NULL) {
+            web_action result = routes[i].handler(match);
+
+            // Cleanup
+            clear_val_map(match);
+            free(match);
+            clear_url_detail(&req_detail);
+
+            return result;
+        }
+    }
+
+    // Migrate routes to routes module TODO
+
     // "GET /favicon.ico" (icon)
     if (strcmp(req->method, "GET") == 0
             && strcmp(req->uri, "/favicon.ico") == 0)
     {
         result.data = "favicon.ico";
-        result.data_type = ACTION_FILE_PATH;
-        result.http_code = 200;
-    }
-
-    // "GET /" (web)
-    if (strcmp(req->method, "GET") == 0 && strcmp(req->uri, "/") == 0)
-    {
-        result.data = "static/html/index.html";
         result.data_type = ACTION_FILE_PATH;
         result.http_code = 200;
     }

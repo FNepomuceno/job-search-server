@@ -15,6 +15,7 @@ url_detail req_to_detail(char * method, char * url)
     url_detail result;
 
     result.url = new_list();
+    result.method = method;
 
     // Insert sections
     char * start = strstr(url, "/");

@@ -4,6 +4,7 @@
 
 #include "query.h"
 #include "route.h"
+#include "vallist.h"
 #include "valmap.h"
 
 web_action web_favicon(val_map * params, val_map * query, char * body)
@@ -58,49 +59,38 @@ web_action web_jobs_get(val_map * params, val_map * query, char * body)
     result.redirect_uri = "";
     result.context = NULL;
 
-    // Setup
-    int qindex = 0;
-    int query_length = 0;
-    // Use value list instead of char *[] TODO
-    char * qvalues[30]; // 30, because it should be enough
-
     // Base query
-    qvalues[0] = "SELECT * FROM jobs";
-    query_length += 18;
-    ++qindex;
+    int num_filters = 0;
+    val_list query_values = new_list();
+    list_insert(&query_values, "SELECT * FROM jobs", 18);
+
+    // The first joining word is "WHERE"
+    // The following joining words are "AND"
 
     // "updated-after"
     char * ua_val = map_get(query, "updated-after");
     if (ua_val != NULL)
     {
-        // Always first so only add " where "
-        qvalues[qindex] = " WHERE latest_update >= \"";
-        qvalues[qindex+1] = ua_val;
-        qvalues[qindex+2] = "\"";
-        query_length += 26 + strlen(ua_val);
-        qindex += 3;
+        list_insert(&query_values, " WHERE latest_update >= \"", 25);
+        list_insert(&query_values, ua_val, strlen(ua_val));
+        list_insert(&query_values, "\"", 1);
+        ++num_filters;
     }
 
     // "updated-before"
     char * ub_val = map_get(query, "updated-before");
     if (ub_val != NULL)
     {
-        // Need to check if is first or not
-        if (qindex == 1)
+        if (num_filters == 0)
         {
-            qvalues[qindex] = " WHERE ";
-            query_length += 7;
+            list_insert(&query_values, " WHERE ", 7);
         }
-        else
-        {
-            qvalues[qindex] = " AND ";
-            query_length += 5;
-        }
-        qvalues[qindex+1] = "latest_update <= \"";
-        qvalues[qindex+2] = ub_val;
-        qvalues[qindex+3] = "\"";
-        query_length += 19 + strlen(ub_val);
-        qindex += 4;
+        else { list_insert(&query_values, " AND ", 5); }
+
+        list_insert(&query_values, "latest_update <= \"", 18);
+        list_insert(&query_values, ub_val, strlen(ub_val));
+        list_insert(&query_values, "\"", 1);
+        ++num_filters;
     }
 
     // These query values do not filter, but change the ordering
@@ -108,16 +98,29 @@ web_action web_jobs_get(val_map * params, val_map * query, char * body)
     // "order-direction"
     // "order-by"
 
-    // Set up query string
-    char * sql_query = malloc(query_length + 10);
-    char * q_cursor = sql_query;
-    for (int i = 0; i < qindex; i++)
+    // Insert ending ";"
+    list_insert(&query_values, ";", 1);
+
+    // Get string length
+    long string_length = 0;
+    for (int i = 0; i < query_values.size; ++i)
     {
-        int len = strlen(qvalues[i]);
-        memcpy(q_cursor, qvalues[i], len);
+        string_length += strlen(query_values.values[i]);
+    }
+
+    // Set up query string
+    char * sql_query = malloc(string_length + 1);
+    char * q_cursor = sql_query;
+    for (int i = 0; i < query_values.size; ++i)
+    {
+        long len = strlen(query_values.values[i]);
+        memcpy(q_cursor, query_values.values[i], len);
         q_cursor += len;
     }
-    strcpy(q_cursor, ";");
+    sql_query[string_length] = '\0';
+
+    // Cleanup
+    clear_val_list(&query_values);
 
     // Finalize request
     result.data = sql_query;

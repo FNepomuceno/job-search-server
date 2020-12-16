@@ -11,6 +11,7 @@ web_action web_favicon(val_map * params, val_map * query, char * body)
     web_action result;
     result.redirect_uri = "";
     result.clean_data = false;
+    result.context = NULL;
 
     result.data = "favicon.ico";
     result.data_type = ACTION_FILE_PATH;
@@ -24,6 +25,7 @@ web_action web_index(val_map * params, val_map * query, char * body)
     web_action result;
     result.redirect_uri = "";
     result.clean_data = false;
+    result.context = NULL;
 
     result.data = "static/html/index.html";
     result.data_type = ACTION_FILE_PATH;
@@ -38,10 +40,9 @@ web_action web_jobs_detail(val_map * params, val_map * query, char * body)
     result.redirect_uri = "";
     result.clean_data = false;
 
-    // Do something with job_id TODO
-    // Add a get function to val_map TODO
-    printf("\"%s\" not available yet\n",
-        params->values[map_key_index(params, "job_id")]);
+    // Add params to context TODO
+    result.context = NULL;
+    printf("\"%s\" not available yet\n", map_get(params, "job_id"));
 
     // Finalize request
     result.data = "static/html/jobs_detail.html";
@@ -55,10 +56,12 @@ web_action web_jobs_get(val_map * params, val_map * query, char * body)
 {
     web_action result;
     result.redirect_uri = "";
+    result.context = NULL;
 
     // Setup
     int qindex = 0;
     int query_length = 0;
+    // Use value list instead of char *[] TODO
     char * qvalues[30]; // 30, because it should be enough
 
     // Base query
@@ -67,20 +70,20 @@ web_action web_jobs_get(val_map * params, val_map * query, char * body)
     ++qindex;
 
     // "updated-after"
-    int ua_index = map_key_index(query, "updated-after");
-    if (ua_index >= 0)
+    char * ua_val = map_get(query, "updated-after");
+    if (ua_val != NULL)
     {
         // Always first so only add " where "
         qvalues[qindex] = " WHERE latest_update >= \"";
-        qvalues[qindex+1] = query->values[ua_index];
+        qvalues[qindex+1] = ua_val;
         qvalues[qindex+2] = "\"";
-        query_length += 26 + strlen(query->values[ua_index]);
+        query_length += 26 + strlen(ua_val);
         qindex += 3;
     }
 
     // "updated-before"
-    int ub_index = map_key_index(query, "updated-before");
-    if (ub_index >= 0)
+    char * ub_val = map_get(query, "updated-before");
+    if (ub_val != NULL)
     {
         // Need to check if is first or not
         if (qindex == 1)
@@ -94,9 +97,9 @@ web_action web_jobs_get(val_map * params, val_map * query, char * body)
             query_length += 5;
         }
         qvalues[qindex+1] = "latest_update <= \"";
-        qvalues[qindex+2] = query->values[ub_index];
+        qvalues[qindex+2] = ub_val;
         qvalues[qindex+3] = "\"";
-        query_length += 19 + strlen(query->values[ub_index]);
+        query_length += 19 + strlen(ub_val);
         qindex += 4;
     }
 
@@ -130,31 +133,27 @@ web_action web_jobs_post(val_map * params, val_map * query, char * body)
     web_action result;
     result.redirect_uri = "";
     result.clean_data = false;
+    result.context = NULL;
 
     val_map map = query_to_map(body);
 
+    // All values to be inserted into the database
+    char * values[10];
+
     // Get required fields and their indices
-    int index_0 = map_key_index(&map, "company");
-    int index_1 = map_key_index(&map, "position");
-    int index_2 = map_key_index(&map, "location");
-    int index_3 = map_key_index(&map, "app_link");
-    int index_4 = map_key_index(&map, "app_method");
-    int index_5 = map_key_index(&map, "referrer");
-    int index_6 = map_key_index(&map, "version");
+    values[0] = map_get(&map, "company");
+    values[1] = map_get(&map, "position");
+    values[2] = map_get(&map, "location");
+    values[3] = map_get(&map, "app_link");
+    values[4] = map_get(&map, "app_method");
+    values[5] = map_get(&map, "referrer");
+    values[6] = map_get(&map, "version");
 
-    if (index_0 >= 0 && index_1 >= 0 && index_2 >= 0 && index_3
-            >= 0 && index_4 >= 0 && index_5 >= 0 && index_6 >= 0)
+    // Verify values to be non-empty TODO
+    if (values[0] != NULL && values[1] != NULL && values[2] != NULL
+        && values[3] != NULL && values[4] != NULL && values[5] != NULL
+        && values[6] != NULL)
     {
-        // All values to be inserted into the database
-        char * values[10];
-
-        values[0] = map.values[index_0]; // Company
-        values[1] = map.values[index_1]; // Position
-        values[2] = map.values[index_2]; // Location
-        values[3] = map.values[index_3]; // App Link
-        values[4] = map.values[index_4]; // Apply Method
-        values[5] = map.values[index_5]; // Referrer
-        values[6] = map.values[index_6]; // Resume Version
         values[7] = "Pending"; // Status
         values[8] = "Applied"; // Progress
         values[9] = "None"; // Interview Details

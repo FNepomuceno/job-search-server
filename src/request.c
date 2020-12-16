@@ -187,6 +187,7 @@ http_request read_header(int clientfd)
     return result;
 }
 
+// Move web action to new module TODO
 void clean_web_action(web_action * action)
 {
     if (action->clean_data)

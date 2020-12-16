@@ -29,6 +29,24 @@ int map_key_index(val_map * map, char * key)
     return -1;
 }
 
+int map_find_key(val_map * map, char * key)
+{
+    return map_key_index(map, key);
+}
+
+char * map_get(val_map * map, char * key)
+{
+    int index = map_find_key(map, key);
+
+    if (index < 0) { return NULL; }
+    else { return map->values[index]; }
+}
+
+bool map_has(val_map * map, char * key)
+{
+    return map_find_key(map, key) >= 0;
+}
+
 val_map new_map(void)
 {
     val_map result;
@@ -44,7 +62,6 @@ val_map new_map(void)
 void insert_entry(val_map * map, char * key, long key_len, char * value,
     long value_len)
 {
-    /* Add this back in TODO
     int key_index = map_key_index(map, key);
 
     // Update value if key exists
@@ -55,7 +72,6 @@ void insert_entry(val_map * map, char * key, long key_len, char * value,
         strcpy(map->values[key_index], value);
         return;
     }
-    */
 
     // Increase capacity if needed
     if (map->size >= map->capacity)

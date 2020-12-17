@@ -94,9 +94,24 @@ web_action web_jobs_get(val_map * params, val_map * query, char * body)
     }
 
     // These query values do not filter, but change the ordering
-    // implement ordering TODO
-    // "order-direction"
-    // "order-by"
+    char * order_val = map_get(query, "order-by");
+    char * dir_val = map_get(query, "order-direction");
+
+    if (order_val == NULL) { order_val = "date_applied"; }
+    if (dir_val == NULL)
+    {
+        if (strcmp(order_val, "date_applied") == 0 ||
+            strcmp(order_val, "latest_update") == 0)
+        {
+            dir_val = "DESC";
+        }
+        else { dir_val = "ASC"; }
+    }
+
+    list_insert(&query_values, " ORDER BY ", 10);
+    list_insert(&query_values, order_val, strlen(order_val));
+    list_insert(&query_values, " ", 1);
+    list_insert(&query_values, dir_val, strlen(dir_val));
 
     // Insert ending ";"
     list_insert(&query_values, ";", 1);

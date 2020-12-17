@@ -54,7 +54,12 @@ async function refresh_jobs() {
 
 window.onload = async function() {
     while (true) {
-        await refresh_jobs();
-        await sleep(60 * 1000);
+        try {
+            await refresh_jobs();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            await sleep(60 * 1000);
+        }
     }
 };

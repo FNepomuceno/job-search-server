@@ -63,6 +63,7 @@ http_response load_from_file(char * data, int proposed_code)
     // Set content type based on file extension
     if (strcmp(extension, ".html") == 0 || strcmp(extension, ".htm") == 0)
     {
+        // Use web action's context in HTML rendering TODO
         result.content_type = TEXT_HTML;
     }
     else if (strcmp(extension, ".css") == 0)

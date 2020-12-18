@@ -13,6 +13,11 @@ void clean_web_action(web_action * action)
     {
         free(action->data);
     }
+    if (action->context != NULL)
+    {
+        clear_val_map(action->context);
+        free(action->context);
+    }
 }
 
 val_map * match_uri(char * met, char * temp, url_detail * req_detail)
@@ -66,7 +71,6 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
             {
                 char * cur_sec = req_detail->url.values[j];
                 sprintf(offset, "%s/", cur_sec);
-                printf("%s\n", cur_sec);
                 offset += strlen(req_detail->url.values[j]) + 1;
             }
             if (length > 0) { --length; }

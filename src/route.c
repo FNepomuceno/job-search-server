@@ -55,9 +55,11 @@ web_action web_jobs_detail(val_map * params, val_map * query, char * body)
     result.redirect_uri = "";
     result.clean_data = false;
 
-    // Add params to context TODO
-    result.context = NULL;
-    printf("\"%s\" not available yet\n", map_get(params, "job_id"));
+    char * job_id = map_get(params, "job_id");
+
+    result.context = malloc(sizeof (val_map));
+    *result.context = new_map();
+    insert_entry(result.context, "job_id", 6, job_id, strlen(job_id));
 
     // Finalize request
     result.data = "static/html/jobs_detail.html";

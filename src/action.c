@@ -66,8 +66,10 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
             {
                 char * cur_sec = req_detail->url.values[j];
                 sprintf(offset, "%s/", cur_sec);
+                printf("%s\n", cur_sec);
                 offset += strlen(req_detail->url.values[j]) + 1;
             }
+            if (length > 0) { --length; }
             sub_path[length] = '\0';
 
             // Set * variable to sub path
@@ -115,20 +117,11 @@ web_action interpret_request(http_request * req)
     web_route routes[] = {
         { "GET", "/favicon.ico", web_favicon },
         { "GET", "/", web_index },
-        // { "GET",  "/static/*", web_static },
+        { "GET",  "/static/*", web_static },
         { "GET", "/jobs/{job_id}", web_jobs_detail },
         { "GET", "/api/jobs", web_jobs_get },
         { "POST", "/api/jobs", web_jobs_post }
     };
-
-    // Test matching with "/static/*" TODO remove
-    val_map * test_match = match_uri("GET", "/static/*", &req_detail);
-    if (test_match != NULL)
-    {
-        printf("looking for static file %s\n", map_get(test_match, "*"));
-        clear_val_map(test_match);
-        free(test_match);
-    }
 
     long num_routes = sizeof (routes) / sizeof (web_route);
     val_map * match = NULL;
@@ -146,22 +139,6 @@ web_action interpret_request(http_request * req)
 
             return result;
         }
-    }
-
-    // Migrate static files route to routes module TODO
-    // "GET /static/*" (static files)
-    if (strcmp(req->method, "GET") == 0
-            && strncmp(req->uri, "/static/", 8) == 0)
-    {
-        char * suffix = req->uri + 8;
-        int data_len = 7 + strlen(suffix);
-        char * data = malloc(data_len + 1);
-        sprintf(data, "static/%s", suffix);
-
-        result.data = data;
-        result.data_type = ACTION_FILE_PATH;
-        result.http_code = 200;
-        result.clean_data = true;
     }
 
     // Cleanup

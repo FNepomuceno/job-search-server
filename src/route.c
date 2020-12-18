@@ -214,3 +214,24 @@ web_action web_jobs_post(val_map * params, val_map * query, char * body)
 
     return result;
 }
+
+web_action web_static(val_map * params, val_map * query, char * body)
+{
+    web_action result;
+    result.redirect_uri = "";
+    result.context = NULL;
+
+    char * sub_path = map_get(params, "*");
+    long length = strlen(sub_path) + 7;
+
+    char * file_path = malloc(length + 1);
+    sprintf(file_path, "static/%s", sub_path);
+    file_path[length] = '\0';
+
+    result.data = file_path;
+    result.data_type = ACTION_FILE_PATH;
+    result.http_code = 200;
+    result.clean_data = true;
+
+    return result;
+}

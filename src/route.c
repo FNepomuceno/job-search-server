@@ -35,6 +35,20 @@ web_action web_index(val_map * params, val_map * query, char * body)
     return result;
 }
 
+web_action web_invalid(val_map * params, val_map * query, char * body)
+{
+    web_action result;
+    result.redirect_uri = "";
+    result.clean_data = false;
+    result.context = NULL;
+
+    result.data = "Something horribly wrong happened";
+    result.data_type = ACTION_RAW_TEXT;
+    result.http_code = 400;
+
+    return result;
+}
+
 web_action web_jobs_detail(val_map * params, val_map * query, char * body)
 {
     web_action result;
@@ -211,6 +225,20 @@ web_action web_jobs_post(val_map * params, val_map * query, char * body)
 
     // Cleanup
     clear_val_map(&map);
+
+    return result;
+}
+
+web_action web_not_found(val_map * params, val_map * query, char * body)
+{
+    web_action result;
+    result.redirect_uri = "";
+    result.clean_data = false;
+    result.context = NULL;
+
+    result.data = "static/html/not_found.html";
+    result.data_type = ACTION_FILE_PATH;
+    result.http_code = 404;
 
     return result;
 }

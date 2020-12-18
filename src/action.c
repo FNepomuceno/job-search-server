@@ -97,19 +97,9 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
 
 web_action interpret_request(http_request * req)
 {
-    web_action result;
-    result.data = "static/html/not_found.html";
-    result.redirect_uri = "";
-    result.data_type = ACTION_FILE_PATH;
-    result.http_code = 404;
-    result.clean_data = false;
-
     // Malformed request
     if (!req->is_successful) {
-        result.data = "Something horribly wrong happened";
-        result.data_type = ACTION_RAW_TEXT;
-        result.http_code = 400;
-        return result;
+        return web_invalid(NULL, NULL, NULL);
     }
 
     url_detail req_detail = req_to_detail(req->method, req->uri);
@@ -144,5 +134,5 @@ web_action interpret_request(http_request * req)
     // Cleanup
     clear_url_detail(&req_detail);
 
-    return result;
+    return web_not_found(NULL, NULL, NULL);
 }

@@ -44,15 +44,38 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
     {
         char * temp_sec = temp_detail.url.values[i];
         char * req_sec = req_detail->url.values[i];
-        // Check for variables
         if (temp_sec[0] == '{')
         {
+            // Set given variable to request's section value
             insert_entry(result, temp_sec+1, strlen(temp_sec)-2,
                 req_sec, strlen(req_sec));
         }
         else if (strcmp(temp_sec, "*") == 0)
         {
-            // Compute sub path and put it in result TODO
+            // Compute sub path's length
+            long length = 0;
+            for (int j = i; j < req_detail->url.size; ++j)
+            {
+                length += strlen(req_detail->url.values[j]) + 1;
+            }
+
+            // Get the sub path
+            char * sub_path = malloc(length+1);
+            char * offset = sub_path;
+            for (int j = i; j < req_detail->url.size; ++j)
+            {
+                char * cur_sec = req_detail->url.values[j];
+                sprintf(offset, "%s/", cur_sec);
+                offset += strlen(req_detail->url.values[j]) + 1;
+            }
+            sub_path[length] = '\0';
+
+            // Set * variable to sub path
+            insert_entry(result, "*", 1, sub_path, length);
+
+            // Cleanup
+            free(sub_path);
+
             break;
         }
         else if (strcmp(temp_sec, req_sec) != 0)
@@ -97,6 +120,15 @@ web_action interpret_request(http_request * req)
         { "GET", "/api/jobs", web_jobs_get },
         { "POST", "/api/jobs", web_jobs_post }
     };
+
+    // Test matching with "/static/*" TODO remove
+    val_map * test_match = match_uri("GET", "/static/*", &req_detail);
+    if (test_match != NULL)
+    {
+        printf("looking for static file %s\n", map_get(test_match, "*"));
+        clear_val_map(test_match);
+        free(test_match);
+    }
 
     long num_routes = sizeof (routes) / sizeof (web_route);
     val_map * match = NULL;

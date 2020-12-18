@@ -1,8 +1,8 @@
 #ifndef RESPONSE_H
 #define RESPONSE_H
 
+#include "action.h"
 #include "database.h"
-#include "request.h"
 
 typedef enum
 {

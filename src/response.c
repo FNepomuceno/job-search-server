@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "response.h"
+#include "template.h"
 
 void clean_http_response(http_response * res)
 {
@@ -64,6 +65,7 @@ http_response load_from_file(char * data, int proposed_code)
     if (strcmp(extension, ".html") == 0 || strcmp(extension, ".htm") == 0)
     {
         // Use web action's context in HTML rendering TODO
+        result.content = parse_html_template(result.content, NULL);
         result.content_type = TEXT_HTML;
     }
     else if (strcmp(extension, ".css") == 0)

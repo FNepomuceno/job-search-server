@@ -44,7 +44,7 @@ web_action web_invalid(val_map * params, val_map * query, char * body)
 
     result.data = "Something horribly wrong happened";
     result.data_type = ACTION_RAW_TEXT;
-    result.http_code = 400;
+    result.http_code = 500;
 
     return result;
 }

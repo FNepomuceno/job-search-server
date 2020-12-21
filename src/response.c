@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "response.h"
+#include "route.h"
 #include "template.h"
 
 void clean_http_response(http_response * res)
@@ -10,8 +11,10 @@ void clean_http_response(http_response * res)
     free(res->content);
 }
 
-http_response prepare_raw_text(char * data, int proposed_code)
+http_response prepare_raw_text(web_action * action)
 {
+    char * data = action->data;
+    int proposed_code = action->http_code;
     http_response result;
 
     result.content_type = TEXT_PLAIN;
@@ -27,19 +30,25 @@ http_response prepare_raw_text(char * data, int proposed_code)
     return result;
 }
 
-http_response load_from_file(char * data, int proposed_code)
+// http_response load_from_file(char * data, int proposed_code)
+http_response load_from_file(web_action * action)
 {
+    char * data = action->data;
+    int proposed_code = action->http_code;
+
     http_response result;
     FILE * f = fopen(data, "r");
     if (!f)
     {
         if (strcmp(data, "static/html/not_found.html") == 0)
         {
-            return prepare_raw_text("Could not find 404 page", 500);
+            web_action page_invalid = web_invalid(NULL, NULL, NULL);
+            return prepare_raw_text(&page_invalid);
         }
         else
         {
-            return load_from_file("static/html/not_found.html", 404);
+            web_action get_not_found = web_not_found(NULL, NULL, NULL);
+            return load_from_file(&get_not_found);
         }
     }
 
@@ -64,8 +73,8 @@ http_response load_from_file(char * data, int proposed_code)
     // Set content type based on file extension
     if (strcmp(extension, ".html") == 0 || strcmp(extension, ".htm") == 0)
     {
-        // Use web action's context in HTML rendering TODO
-        result.content = parse_html_template(result.content, NULL);
+        result.content = parse_html_template(result.content,
+            action->context);
         result.content_type = TEXT_HTML;
     }
     else if (strcmp(extension, ".css") == 0)
@@ -91,9 +100,12 @@ http_response load_from_file(char * data, int proposed_code)
     return result;
 }
 
-http_response execute_sql_statement(char * data, int proposed_code,
-    char * redirect_uri, db_conn * conn)
+http_response execute_sql_statement(web_action * action, db_conn * conn)
 {
+    char * data = action->data;
+    int proposed_code = action->http_code;
+    char * redirect_uri = action->redirect_uri;
+
     http_response result;
 
     // Execute statement and get results
@@ -226,19 +238,20 @@ http_response handle_action(web_action * action, db_conn * conn)
     switch(action->data_type)
     {
     case ACTION_FILE_PATH:
-        result = load_from_file(action->data, action->http_code);
+        result = load_from_file(action);
         break;
     case ACTION_SQL_QUERY:
-        result = execute_sql_statement(action->data, action->http_code,
-                action->redirect_uri, conn);
+        result = execute_sql_statement(action, conn);
         break;
     case ACTION_RAW_TEXT:
-        result = prepare_raw_text(action->data, action->http_code);
+        result = prepare_raw_text(action);
         break;
     default:
-        // Behave like ACTION_RAW_TEXT with the following string literal
-        result = prepare_raw_text("You shouldn't be seeing this", 500);
-        break;
+        {
+            web_action invalid_action = web_invalid(NULL, NULL, NULL);
+            result = prepare_raw_text(&invalid_action);
+            break;
+        }
     }
     clean_web_action(action);
 

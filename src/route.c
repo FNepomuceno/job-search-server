@@ -200,7 +200,7 @@ web_action web_jobs_post(val_map * params, val_map * query, char * body)
             "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", "
             "\"%s\");";
         int stmt_len = strlen(template_query);
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; ++i)
         {
             stmt_len += strlen(values[i]) - 2;
         }

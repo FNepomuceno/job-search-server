@@ -94,7 +94,7 @@ void clear_row(db_row * row)
     if (row->has_value)
     {
         row->has_value = false;
-        for (int i = 0; i < row->num_cols; i++)
+        for (int i = 0; i < row->num_cols; ++i)
         {
             free(row->values[i]);
             free(row->col_names[i]);
@@ -134,7 +134,7 @@ void step_row(db_row * row)
         row->col_types = malloc(sizeof(int)*num_cols);
         row->col_names = malloc(sizeof(char *)*num_cols);
         row->values = malloc(sizeof(void *)*num_cols);
-        for (int i = 0; i < num_cols; i++)
+        for (int i = 0; i < num_cols; ++i)
         {
             // Column type
             row->col_types[i] = sqlite3_column_type(res, i);

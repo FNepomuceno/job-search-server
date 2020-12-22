@@ -122,7 +122,7 @@ http_response execute_sql_statement(web_action * action, db_conn * conn)
     db_row * row = new_row(stmt);
     for (; row->has_value; step_row(row))
     {
-        for (int i = 0; i < row->num_cols; i++)
+        for (int i = 0; i < row->num_cols; ++i)
         {
             if (size+1 >= capacity)
             {
@@ -165,11 +165,11 @@ http_response execute_sql_statement(web_action * action, db_conn * conn)
 
     // Results
     int res_offset = 12; // accounts for `{"result": [`
-    for (int i = 0; i < num_results; i++)
+    for (int i = 0; i < num_results; ++i)
     {
         sprintf(res_str + res_offset, "{");
         res_offset += 1;
-        for (int j = 0; j < num_cols; j++)
+        for (int j = 0; j < num_cols; ++j)
         {
             int k = 2*num_cols*i + 2*j; // index into rows
             char * field = rows[k];
@@ -198,7 +198,7 @@ http_response execute_sql_statement(web_action * action, db_conn * conn)
     sprintf(res_str + res_offset, "]}");
 
     // Clean up
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; ++i)
     {
         free(rows[i]);
     }

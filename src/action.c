@@ -45,7 +45,7 @@ val_map * match_uri(char * met, char * temp, url_detail * req_detail)
         return NULL;
     }
 
-    for (int i = 0; i < temp_detail.url.size; i++)
+    for (int i = 0; i < temp_detail.url.size; ++i)
     {
         char * temp_sec = temp_detail.url.values[i];
         char * req_sec = req_detail->url.values[i];
@@ -119,7 +119,7 @@ web_action interpret_request(http_request * req)
 
     long num_routes = sizeof (routes) / sizeof (web_route);
     val_map * match = NULL;
-    for (int i = 0; i < num_routes; i++)
+    for (int i = 0; i < num_routes; ++i)
     {
         match = match_uri(routes[i].method, routes[i].path, &req_detail);
         if (match != NULL) {

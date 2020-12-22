@@ -8,7 +8,7 @@
 
 void clean_http_request(http_request * req)
 {
-    for (int i = 0; i < 2 * req->num_lines; i++)
+    for (int i = 0; i < 2 * req->num_lines; ++i)
     {
         free(req->header_lines[i]);
     }
@@ -31,7 +31,7 @@ void print_request(http_request * req)
     printf("METHOD: %s\n", req->method);
     printf("URI: %s\n", req->uri);
     printf("VERSION: %s\n", req->version);
-    for (int i = 0; i < req->num_lines; i++)
+    for (int i = 0; i < req->num_lines; ++i)
     {
         printf("FIELD: %s\n", req->header_lines[2*i]);
         printf("VALUE: %s\n", req->header_lines[2*i+1]);
@@ -95,7 +95,7 @@ http_request read_header(int clientfd)
     --line_num;
     result.num_lines = line_num;
     result.header_lines = malloc(2 * line_num * sizeof (char *));
-    for (int i = 0; i < 2 * line_num; i++)
+    for (int i = 0; i < 2 * line_num; ++i)
     {
         result.header_lines[i] = NULL;
     }
@@ -133,7 +133,7 @@ http_request read_header(int clientfd)
     // STEP 5: Read header lines
     cur_line = strstr(buffer, "\r\n") + 2;
     long body_length = 0;
-    for (int i = 0; i < result.num_lines; i++)
+    for (int i = 0; i < result.num_lines; ++i)
     {
         char * next_line = strstr(cur_line, "\r\n");
         char * field_end = strstr(cur_line, ": ");

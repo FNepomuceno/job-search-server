@@ -36,10 +36,20 @@ char * parse_html_template(char * raw_html, val_map * context)
             list_insert(&sections, cursor, prevar_length);
 
             // Section at variable
-            // Take from context instead TODO
             long var_length = var_end - (next_var + 1);
-            new_length += var_length;
-            list_insert(&sections, next_var+1, var_length);
+            char * template_var = malloc(var_length + 1);
+            memcpy(template_var, next_var+1, var_length);
+            template_var[var_length] = '\0';
+
+            char * value = map_get(context, template_var);
+            if (value == NULL) { value = ""; }
+            long val_length = strlen(value);
+
+            new_length += val_length;
+            list_insert(&sections, value, val_length);
+
+            // Cleanup
+            free(template_var);
 
             cursor = var_end + 1;
         }

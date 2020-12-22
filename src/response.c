@@ -75,6 +75,7 @@ http_response load_from_file(web_action * action)
     {
         result.content = parse_html_template(result.content,
             action->context);
+        result.content_length = strlen(result.content);
         result.content_type = TEXT_HTML;
     }
     else if (strcmp(extension, ".css") == 0)

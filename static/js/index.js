@@ -52,14 +52,6 @@ async function refresh_jobs() {
     update_text.innerHTML = `Last updated: ${date_string}`;
 }
 
-window.onload = async function() {
-    while (true) {
-        try {
-            await refresh_jobs();
-        } catch (e) {
-            console.error(e);
-        } finally {
-            await sleep(60 * 1000);
-        }
-    }
-};
+let table_updater = Updater(refresh_jobs, 60 * 1000);
+
+window.onload = table_updater.update();

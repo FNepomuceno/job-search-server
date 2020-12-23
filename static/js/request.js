@@ -31,7 +31,3 @@ function http_post(url, params) {
         xhr.send();
     });
 }
-
-function sleep(ms) {
-    return new Promise(res => setTimeout(res, ms));
-}

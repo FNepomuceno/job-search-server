@@ -1,5 +1,11 @@
 function param_string(map) {
-    return '';
+    let entry_strings = [];
+    for (const [key, value] of Object.entries(map)) {
+        entry_strings.push(`${key}=${encodeURIComponent(value)}`);
+    }
+
+    if (entry_strings.length < 1) { return ''; }
+    else { return '?' + entry_strings.join('&'); }
 }
 
 function http_get(url, params) {

@@ -1,5 +1,13 @@
+let sort_column = '';
+let sort_direction = 'ASC';
+
 async function refresh_jobs() {
-    let rows = JSON.parse(await http_get('/api/jobs', {})).result;
+    let context = {};
+    if (sort_column != '') {
+        context['order-by'] = sort_column;
+        context['order-direction'] = sort_direction;
+    }
+    let rows = JSON.parse(await http_get('/api/jobs', context)).result;
 
     rows.forEach((row) => {
         // Change "app link" to link
@@ -54,4 +62,30 @@ async function refresh_jobs() {
 
 let table_updater = Updater(refresh_jobs, 60 * 1000);
 
-window.onload = table_updater.update();
+function update_sorting(field, default_direction) {
+    if (sort_column == field) {
+        sort_direction = (sort_direction == 'ASC')? 'DESC': 'ASC';
+    } else {
+        sort_direction = default_direction;
+    }
+    sort_column = field;
+    table_updater.update();
+}
+
+let company_header = document.getElementById('company_header');
+company_header.onclick = update_sorting.bind(null, 'company', 'ASC');
+
+let position_header = document.getElementById('position_header');
+position_header.onclick = update_sorting.bind(null, 'position', 'ASC');
+
+let location_header = document.getElementById('location_header');
+location_header.onclick = update_sorting.bind(null, 'location', 'ASC');
+
+let applied_header = document.getElementById('applied_header');
+applied_header.onclick = update_sorting.bind(null, 'date_applied', 'DESC');
+
+let updated_header = document.getElementById('updated_header');
+updated_header.onclick =
+    update_sorting.bind(null, 'latest_update', 'DESC');
+
+window.onload = table_updater.update;
